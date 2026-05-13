@@ -1,0 +1,153 @@
+.container {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 18px;
+  background:
+    linear-gradient(145deg, rgba(45, 212, 191, 0.1), transparent 34%),
+    linear-gradient(315deg, rgba(14, 165, 233, 0.12), transparent 34%),
+    #020617;
+  color: #f8fafc;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+.card {
+  width: min(430px, 100%);
+  padding: 44px 40px;
+  border: 1px solid rgba(45, 212, 191, 0.16);
+  border-radius: 8px;
+  background: rgba(8, 13, 24, 0.94);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+}
+
+.formEyebrow {
+  display: inline-flex;
+  width: max-content;
+  padding: 7px 10px;
+  border: 1px solid rgba(45, 212, 191, 0.54);
+  border-radius: 8px;
+  background: rgba(20, 184, 166, 0.15);
+  color: #ccfbf1;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 16px 0 8px;
+  color: #f8fafc;
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.subtitle {
+  margin: 0 0 26px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.card form {
+  display: grid;
+  gap: 16px;
+}
+
+.card label {
+  display: grid;
+  gap: 7px;
+}
+
+.card label span {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.card input {
+  width: 100%;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid rgba(71, 85, 105, 0.84);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.82);
+  color: #e2e8f0;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.card input::placeholder {
+  color: #64748b;
+}
+
+.card input:focus {
+  border-color: #2dd4bf;
+  background: #020617;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.18);
+}
+
+.card small {
+  color: #fca5a5;
+  font-size: 12px;
+}
+
+.card button {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2dd4bf, #38bdf8);
+  color: #04111f;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(45, 212, 191, 0.24);
+}
+
+.card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.card > p {
+  margin: 22px 0 0;
+  color: #94a3b8;
+  font-size: 14px;
+  text-align: center;
+}
+
+.card a {
+  color: #5eead4;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.card a:hover {
+  color: #67e8f9;
+}
+
+.errorBanner {
+  margin: 0 0 16px;
+  padding: 11px 13px;
+  border: 1px solid rgba(248, 113, 113, 0.36);
+  border-radius: 8px;
+  background: rgba(127, 29, 29, 0.22);
+  color: #fecaca;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: 34px 24px;
+  }
+}
