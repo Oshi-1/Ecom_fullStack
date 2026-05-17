@@ -19,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -46,8 +48,13 @@ public class OrderServiceImpl implements OrderService {
 			throw new RuntimeException("Cart is empty");
 		}
 
+		BigDecimal cartTotal = calculateCartTotal(cartItems);
+		validateCheckoutSnapshot(request, cartItems, cartTotal, user);
+
 		Order order = new Order();
 		order.setUser(user);
+		order.setCustomerName(request.getUserDetails().getName().trim());
+		order.setCustomerEmail(request.getUserDetails().getEmail().trim());
 		order.setStatus("PLACED");
 		order.setShippingAddress(request.getShippingAddress().trim());
 		order.setPaymentMethod(request.getPaymentMethod());
@@ -120,12 +127,53 @@ public class OrderServiceImpl implements OrderService {
 		}
 	}
 
+	private BigDecimal calculateCartTotal(List<CartItem> cartItems) {
+		return cartItems.stream()
+				.map(cartItem -> cartItem.getProduct().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	}
+
+	private void validateCheckoutSnapshot(
+			CheckoutRequest request,
+			List<CartItem> cartItems,
+			BigDecimal cartTotal,
+			User user) {
+		if (!user.getEmail().equalsIgnoreCase(request.getUserDetails().getEmail().trim())) {
+			throw new RuntimeException("Checkout user does not match the signed-in account");
+		}
+
+		if (request.getTotalAmount().compareTo(cartTotal) != 0) {
+			throw new RuntimeException("Cart total has changed. Please review your cart and try again");
+		}
+
+		if (request.getCartItems().size() != cartItems.size()) {
+			throw new RuntimeException("Cart items have changed. Please review your cart and try again");
+		}
+
+		Map<Long, CheckoutRequest.CheckoutCartItem> requestedItems = new HashMap<>();
+		for (CheckoutRequest.CheckoutCartItem item : request.getCartItems()) {
+			requestedItems.put(item.getProductId(), item);
+		}
+
+		for (CartItem cartItem : cartItems) {
+			Product product = cartItem.getProduct();
+			CheckoutRequest.CheckoutCartItem requestedItem = requestedItems.get(product.getProductId());
+			BigDecimal currentSubtotal = product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
+
+			if (requestedItem == null
+					|| !cartItem.getQuantity().equals(requestedItem.getQuantity())
+					|| requestedItem.getSubtotal().compareTo(currentSubtotal) != 0) {
+				throw new RuntimeException("Cart items have changed. Please review your cart and try again");
+			}
+		}
+	}
+
 	private OrderResponse mapToResponse(Order order) {
 		OrderResponse response = new OrderResponse();
 		response.setOrderId(order.getOrderId());
 		response.setUserId(order.getUser().getUserId());
-		response.setCustomerName(order.getUser().getName());
-		response.setCustomerEmail(order.getUser().getEmail());
+		response.setCustomerName(order.getCustomerName() != null ? order.getCustomerName() : order.getUser().getName());
+		response.setCustomerEmail(order.getCustomerEmail() != null ? order.getCustomerEmail() : order.getUser().getEmail());
 		response.setTotalAmount(order.getTotalAmount());
 		response.setTotalItems(order.getTotalItems());
 		response.setStatus(order.getStatus());

@@ -32,6 +32,12 @@ public class Order {
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
+	@Column(length = 100)
+	private String customerName;
+
+	@Column(length = 150)
+	private String customerEmail;
+
 	@Column(nullable = false)
 	private BigDecimal totalAmount;
 

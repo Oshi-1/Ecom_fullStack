@@ -46,7 +46,7 @@ export default function LoginPage() {
   return (
     <div className={styles.authPage}>
       <section className={styles.authCard}>
-        <span className={styles.formEyebrow}>Ecommerce Web</span>
+        <span className={styles.formEyebrow}>Cartora</span>
         <h1 className={styles.title}>Sign in</h1>
         <p className={styles.subtitle}>Enter your details to continue shopping.</p>
         {errors.general && <p className={styles.errorBanner}>{errors.general}</p>}

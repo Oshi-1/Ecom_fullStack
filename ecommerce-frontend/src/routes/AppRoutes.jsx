@@ -7,6 +7,7 @@ import AddProductPage from "../pages/AddProductPage";
 import ProductDetailsPage from "../pages/ProductDetailsPage";
 import CartPage from "../pages/CartPage";
 import CheckoutPage from "../pages/CheckoutPage";
+import OrderSuccessPage from "../pages/OrderSuccessPage";
 import UsersPage from "../pages/UsersPage";
 import OrderHistoryPage from "../pages/OrderHistoryPage";
 import UserOrdersPage from "../pages/UserOrdersPage";
@@ -39,6 +40,9 @@ export default function AppRoutes() {
       }/>
       <Route path="/checkout" element={
         <ProtectedRoute><CheckoutPage /></ProtectedRoute>
+      }/>
+      <Route path="/order-success" element={
+        <ProtectedRoute><OrderSuccessPage /></ProtectedRoute>
       }/>
       <Route path="/users" element={
         <ProtectedRoute><AdminRoute><UsersPage /></AdminRoute></ProtectedRoute>

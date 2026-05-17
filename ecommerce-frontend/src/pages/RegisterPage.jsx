@@ -47,7 +47,7 @@ export default function RegisterPage() {
   return (
     <div className={styles.container}>
       <section className={styles.card}>
-        <span className={styles.formEyebrow}>Ecommerce Web</span>
+        <span className={styles.formEyebrow}>Cartora</span>
         <h1>Sign up</h1>
         <p className={styles.subtitle}>Fill in your details to create a new customer account.</p>
 

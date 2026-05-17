@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCart } from "../api/cartApi";
+import { clearCart, getCart } from "../api/cartApi";
 import { placeOrder } from "../api/orderApi";
+import { useAuth } from "../context/useAuth";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
 import styles from "../styles/products.module.css";
 
@@ -17,11 +18,13 @@ const initialForm = {
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [cart, setCart] = useState({ items: [], totalItems: 0, totalAmount: 0 });
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const buildShippingAddress = () => {
     return [
@@ -73,6 +76,68 @@ export default function CheckoutPage() {
     );
   }, [cart.items.length, form.city, form.houseNo, form.pincode, form.state, submitting]);
 
+  const getApiError = (err) => {
+    const data = err.response?.data;
+
+    if (data?.error) {
+      return data.error;
+    }
+
+    if (data && typeof data === "object") {
+      return Object.values(data).find(Boolean) || "Order could not be placed";
+    }
+
+    return "Order could not be placed";
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!form.houseNo.trim()) {
+      errors.houseNo = "House / Flat No. is required";
+    }
+
+    if (!form.city.trim()) {
+      errors.city = "City is required";
+    }
+
+    if (!/^[0-9]{6}$/.test(form.pincode.trim())) {
+      errors.pincode = "Enter a valid 6 digit pincode";
+    }
+
+    if (!form.state.trim()) {
+      errors.state = "State is required";
+    }
+
+    if (form.contactNumber.trim() && !/^[0-9+\-\s()]{7,20}$/.test(form.contactNumber.trim())) {
+      errors.contactNumber = "Enter a valid contact number";
+    }
+
+    if (!cart.items.length) {
+      errors.cart = "Your cart is empty";
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const buildCheckoutPayload = (shippingAddress) => ({
+    userDetails: {
+      name: user?.name || "Customer",
+      email: user?.email || "",
+    },
+    shippingAddress,
+    cartItems: cart.items.map((item) => ({
+      productId: item.productId,
+      name: item.name,
+      quantity: item.quantity,
+      subtotal: item.subtotal,
+    })),
+    totalAmount: cart.totalAmount,
+    paymentMethod: form.paymentMethod,
+    contactNumber: form.contactNumber.trim(),
+  });
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
@@ -81,6 +146,10 @@ export default function CheckoutPage() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+
+    if (!validateForm()) {
+      return;
+    }
 
     const shippingAddress = buildShippingAddress();
 
@@ -92,19 +161,18 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     try {
-      await placeOrder({
-        shippingAddress,
-        paymentMethod: form.paymentMethod,
-        contactNumber: form.contactNumber.trim(),
-      });
+      const res = await placeOrder(buildCheckoutPayload(shippingAddress));
+      await clearCart();
 
-      navigate("/my-orders", {
+      navigate("/order-success", {
+        replace: true,
         state: {
+          order: res.data,
           toast: { type: "success", message: "Order placed successfully" },
         },
       });
     } catch (err) {
-      setError(err.response?.data?.error || "Order could not be placed");
+      setError(getApiError(err));
     } finally {
       setSubmitting(false);
     }
@@ -149,7 +217,9 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   maxLength="120"
                   required
+                  aria-invalid={Boolean(fieldErrors.houseNo)}
                 />
+                {fieldErrors.houseNo && <span className={styles.fieldError}>{fieldErrors.houseNo}</span>}
               </label>
 
               <label>
@@ -172,7 +242,9 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   maxLength="80"
                   required
+                  aria-invalid={Boolean(fieldErrors.city)}
                 />
+                {fieldErrors.city && <span className={styles.fieldError}>{fieldErrors.city}</span>}
               </label>
 
               <label>
@@ -186,7 +258,9 @@ export default function CheckoutPage() {
                   pattern="[0-9]{6}"
                   maxLength="6"
                   required
+                  aria-invalid={Boolean(fieldErrors.pincode)}
                 />
+                {fieldErrors.pincode && <span className={styles.fieldError}>{fieldErrors.pincode}</span>}
               </label>
 
               <label>
@@ -198,7 +272,9 @@ export default function CheckoutPage() {
                   onChange={handleChange}
                   maxLength="80"
                   required
+                  aria-invalid={Boolean(fieldErrors.state)}
                 />
+                {fieldErrors.state && <span className={styles.fieldError}>{fieldErrors.state}</span>}
               </label>
             </div>
 
@@ -210,7 +286,11 @@ export default function CheckoutPage() {
                 value={form.contactNumber}
                 onChange={handleChange}
                 maxLength="20"
+                aria-invalid={Boolean(fieldErrors.contactNumber)}
               />
+              {fieldErrors.contactNumber && (
+                <span className={styles.fieldError}>{fieldErrors.contactNumber}</span>
+              )}
             </label>
 
             <fieldset className={styles.paymentOptions}>
@@ -247,7 +327,9 @@ export default function CheckoutPage() {
               </label>
             </fieldset>
 
-            <button type="submit" className={styles.searchBtn} disabled={!canSubmit}>
+            {fieldErrors.cart && <p className={styles.errorCompact}>{fieldErrors.cart}</p>}
+
+            <button type="submit" className={styles.searchBtn} disabled={!canSubmit} aria-busy={submitting}>
               {submitting ? "Placing Order..." : "Place Order"}
             </button>
           </form>
