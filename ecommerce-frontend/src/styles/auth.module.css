@@ -64,6 +64,34 @@
   font-weight: 900;
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.labelRow a,
+.labelRow button {
+  color: #176b5b;
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.labelRow button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.labelRow a:hover,
+.labelRow button:hover {
+  color: #ef6a52;
+}
+
 .field input {
   width: 100%;
   min-height: 50px;
@@ -120,6 +148,17 @@
   border-radius: 8px;
   background: #fff0eb;
   color: #9f271b;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.successBanner {
+  margin: 0 0 16px;
+  padding: 12px 13px;
+  border: 1px solid rgba(23, 107, 91, 0.24);
+  border-radius: 8px;
+  background: #e4f3ec;
+  color: #176b5b;
   font-size: 14px;
   line-height: 1.45;
 }

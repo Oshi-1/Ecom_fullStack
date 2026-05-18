@@ -32,11 +32,17 @@ public class AuthController {
 		return ResponseEntity.ok(authService.login(request));
 	}
 
+	@PostMapping("/forgot-password")
+	public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+		authService.resetPassword(request);
+		return ResponseEntity.ok("Password reset successfully");
+	}
+
 	// Protected endpoint — JwtFilter sets authentication before this runs
 	// @AuthenticationPrincipal gives us the currently logged-in user
 	@GetMapping("/me")
 	public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
-		User user = userRepository.findByEmail(userDetails.getUsername())
+		User user = userRepository.findByEmailIgnoreCase(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		return ResponseEntity.ok(new AuthResponse(null, user.getName(), user.getEmail(), user.getRole()));

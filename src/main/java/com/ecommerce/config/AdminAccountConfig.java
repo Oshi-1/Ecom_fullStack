@@ -23,7 +23,7 @@ public class AdminAccountConfig {
 	@Bean
 	CommandLineRunner seedAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 		return args -> {
-			User admin = userRepository.findByEmail(adminEmail).orElseGet(User::new);
+			User admin = userRepository.findByEmailIgnoreCase(adminEmail).orElseGet(User::new);
 			admin.setName(adminName);
 			admin.setEmail(adminEmail);
 			admin.setPassword(passwordEncoder.encode(adminPassword));

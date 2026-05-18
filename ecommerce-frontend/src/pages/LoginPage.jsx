@@ -57,7 +57,10 @@ export default function LoginPage() {
             {errors.email && <span className={styles.error}>{errors.email}</span>}
           </div>
           <div className={styles.field}>
-            <label>Password</label>
+            <div className={styles.labelRow}>
+              <label>Password</label>
+              <Link to="/forgot-password">Forgot password?</Link>
+            </div>
             <input name="password" type="password" placeholder="Your password" value={form.password} onChange={handleChange} />
             {errors.password && <span className={styles.error}>{errors.password}</span>}
           </div>

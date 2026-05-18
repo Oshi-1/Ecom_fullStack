@@ -113,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
 	}
 
 	private User getUser(UserDetails userDetails) {
-		return userRepository.findByEmail(userDetails.getUsername())
+		return userRepository.findByEmailIgnoreCase(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 	}
 

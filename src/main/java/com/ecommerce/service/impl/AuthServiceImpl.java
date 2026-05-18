@@ -30,13 +30,15 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public AuthResponse register(RegisterRequest request) {
-		if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+		String email = request.getEmail().trim().toLowerCase();
+
+		if (userRepository.findByEmailIgnoreCase(email).isPresent()) {
 			throw new RuntimeException("Email already in use");
 		}
 
 		User user = new User();
 		user.setName(request.getName());
-		user.setEmail(request.getEmail());
+		user.setEmail(email);
 		user.setPassword(passwordEncoder.encode(request.getPassword()));
 		user.setRole("USER");
 
@@ -48,14 +50,25 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public AuthResponse login(LoginRequest request) {
-		authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+		String email = request.getEmail().trim();
 
-		User user = userRepository.findByEmail(request.getEmail())
+		authenticationManager
+				.authenticate(new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+
+		User user = userRepository.findByEmailIgnoreCase(email)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		String token = jwtUtil.generateToken(user.getEmail());
 		return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole());
+	}
+
+	@Override
+	public void resetPassword(ForgotPasswordRequest request) {
+		User user = userRepository.findByEmailIgnoreCase(request.getEmail().trim())
+				.orElseThrow(() -> new RuntimeException("No account found with this email"));
+
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		userRepository.save(user);
 	}
 
 }

@@ -137,6 +137,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 42px;
   padding: 0 16px;
   border: 1px solid rgba(255, 250, 242, 0.12);
@@ -152,10 +153,28 @@
   font-weight: 950;
 }
 
+.navCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: #fffaf2;
+  color: #176b5b;
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+}
+
 .nav button:hover {
   border-color: #ef6a52;
   background: #ef6a52;
   color: #ffffff;
+}
+
+.nav button:hover .navCount {
+  color: #cf4d39;
 }
 
 .logoutBtn {
@@ -304,6 +323,19 @@
   font-weight: 950;
 }
 
+.actionCount {
+  width: max-content;
+  margin-top: 8px;
+  padding: 6px 9px;
+  border: 1px solid rgba(23, 107, 91, 0.22);
+  border-radius: 8px;
+  background: #e4f3ec;
+  color: #176b5b;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 950;
+}
+
 .actionTile small {
   margin-top: 10px;
   color: #6b7280;
@@ -312,8 +344,14 @@
 }
 
 .actionTile:hover span,
+.actionTile:hover .actionCount,
 .actionTile:hover small {
   color: rgba(255, 250, 242, 0.78);
+}
+
+.actionTile:hover .actionCount {
+  border-color: rgba(255, 250, 242, 0.28);
+  background: rgba(255, 250, 242, 0.14);
 }
 
 .usersPage {
