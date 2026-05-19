@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.save(user);
 
 		String token = jwtUtil.generateToken(user.getEmail());
-		return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole());
+		return buildAuthResponse(token, user);
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
 		String token = jwtUtil.generateToken(user.getEmail());
-		return new AuthResponse(token, user.getName(), user.getEmail(), user.getRole());
+		return buildAuthResponse(token, user);
 	}
 
 	@Override
@@ -71,4 +71,56 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.save(user);
 	}
 
+	@Override
+	public AuthResponse updateProfile(String email, UpdateProfileRequest request) {
+		User user = userRepository.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+
+		String updatedEmail = request.getEmail().trim().toLowerCase();
+		userRepository.findByEmailIgnoreCase(updatedEmail)
+				.filter(existing -> !existing.getUserId().equals(user.getUserId()))
+				.ifPresent(existing -> {
+					throw new RuntimeException("Email already in use");
+				});
+
+		String newPassword = normalize(request.getNewPassword());
+		if (newPassword != null) {
+			String currentPassword = normalize(request.getCurrentPassword());
+			if (currentPassword == null) {
+				throw new RuntimeException("Current password is required to set a new password");
+			}
+			if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+				throw new RuntimeException("Current password is incorrect");
+			}
+			user.setPassword(passwordEncoder.encode(newPassword));
+		}
+
+		user.setName(request.getName().trim());
+		user.setEmail(updatedEmail);
+		user.setPhone(normalize(request.getPhone()));
+		user.setProfilePictureUrl(normalize(request.getProfilePictureUrl()));
+		user.setAddress(normalize(request.getAddress()));
+
+		User savedUser = userRepository.save(user);
+		String token = email.equalsIgnoreCase(savedUser.getEmail()) ? null : jwtUtil.generateToken(savedUser.getEmail());
+		return buildAuthResponse(token, savedUser);
+	}
+
+	private AuthResponse buildAuthResponse(String token, User user) {
+		return new AuthResponse(
+				token,
+				user.getName(),
+				user.getEmail(),
+				user.getRole(),
+				user.getPhone(),
+				user.getProfilePictureUrl(),
+				user.getAddress());
+	}
+
+	private String normalize(String value) {
+		if (value == null || value.trim().isEmpty()) {
+			return null;
+		}
+		return value.trim();
+	}
 }

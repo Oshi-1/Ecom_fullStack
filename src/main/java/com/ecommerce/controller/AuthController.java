@@ -45,6 +45,20 @@ public class AuthController {
 		User user = userRepository.findByEmailIgnoreCase(userDetails.getUsername())
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		return ResponseEntity.ok(new AuthResponse(null, user.getName(), user.getEmail(), user.getRole()));
+		return ResponseEntity.ok(new AuthResponse(
+				null,
+				user.getName(),
+				user.getEmail(),
+				user.getRole(),
+				user.getPhone(),
+				user.getProfilePictureUrl(),
+				user.getAddress()));
+	}
+
+	@PutMapping("/profile")
+	public ResponseEntity<AuthResponse> updateProfile(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@Valid @RequestBody UpdateProfileRequest request) {
+		return ResponseEntity.ok(authService.updateProfile(userDetails.getUsername(), request));
 	}
 }

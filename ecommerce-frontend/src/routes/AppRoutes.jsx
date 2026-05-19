@@ -12,6 +12,7 @@ import OrderSuccessPage from "../pages/OrderSuccessPage";
 import UsersPage from "../pages/UsersPage";
 import OrderHistoryPage from "../pages/OrderHistoryPage";
 import UserOrdersPage from "../pages/UserOrdersPage";
+import ProfilePage from "../pages/ProfilePage";
 import ProtectedRoute from "../components/ProtectedRoute";
 import AdminRoute from "../components/AdminRoute";
 
@@ -24,6 +25,9 @@ export default function AppRoutes() {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/dashboard" element={
         <ProtectedRoute><DashboardPage /></ProtectedRoute>
+      }/>
+      <Route path="/profile" element={
+        <ProtectedRoute><ProfilePage /></ProtectedRoute>
       }/>
       <Route path="/products" element={
         <ProtectedRoute><ProductsPage /></ProtectedRoute>

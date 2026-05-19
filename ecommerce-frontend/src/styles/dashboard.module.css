@@ -73,6 +73,7 @@
 .profileCard > span {
   display: grid;
   place-items: center;
+  overflow: hidden;
   width: 42px;
   height: 42px;
   border-radius: 8px;
@@ -151,6 +152,12 @@
 .nav button span {
   font-size: 15px;
   font-weight: 950;
+}
+
+.profileCard img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .navCount {

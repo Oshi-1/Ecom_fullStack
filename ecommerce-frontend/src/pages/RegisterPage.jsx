@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../api/authApi";
+import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
 import styles from "../styles/register.module.css";
 
@@ -11,6 +12,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -79,12 +81,16 @@ export default function RegisterPage() {
 
           <label>
             <span>Password</span>
-            <input
+            <PasswordInput
               name="password"
-              type="password"
               placeholder="Create password"
               value={form.password}
               onChange={handleChange}
+              autoComplete="new-password"
+              visible={showPassword}
+              onToggle={() => setShowPassword((current) => !current)}
+              className={styles.passwordInput}
+              buttonClassName={styles.passwordToggle}
             />
             {errors.password && <small>{errors.password}</small>}
           </label>

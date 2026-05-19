@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../api/authApi";
+import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
 import styles from "../styles/auth.module.css";
 
@@ -10,6 +11,7 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -61,7 +63,17 @@ export default function LoginPage() {
               <label>Password</label>
               <Link to="/forgot-password">Forgot password?</Link>
             </div>
-            <input name="password" type="password" placeholder="Your password" value={form.password} onChange={handleChange} />
+            <PasswordInput
+              name="password"
+              placeholder="Your password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+              visible={showPassword}
+              onToggle={() => setShowPassword((current) => !current)}
+              className={styles.passwordInput}
+              buttonClassName={styles.passwordToggle}
+            />
             {errors.password && <span className={styles.error}>{errors.password}</span>}
           </div>
           <button type="submit" className={styles.btn} disabled={loading}>

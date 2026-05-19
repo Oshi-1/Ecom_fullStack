@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { forgotPassword } from "../api/authApi";
+import PasswordInput from "../components/PasswordInput";
 import styles from "../styles/auth.module.css";
 
 export default function ForgotPasswordPage() {
@@ -9,7 +10,10 @@ export default function ForgotPasswordPage() {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [visiblePasswords, setVisiblePasswords] = useState({
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -27,7 +31,7 @@ export default function ForgotPasswordPage() {
     setForm({ ...form, newPassword: password, confirmPassword: password });
     setErrors({ ...errors, newPassword: "", confirmPassword: "", general: "" });
     setSuccess("");
-    setShowPassword(true);
+    setVisiblePasswords({ newPassword: true, confirmPassword: true });
   };
 
   const validate = () => {
@@ -118,24 +122,36 @@ export default function ForgotPasswordPage() {
                 Generate
               </button>
             </div>
-            <input
+            <PasswordInput
               name="newPassword"
-              type={showPassword ? "text" : "password"}
               placeholder="Create new password"
               value={form.newPassword}
               onChange={handleChange}
+              autoComplete="new-password"
+              visible={visiblePasswords.newPassword}
+              onToggle={() =>
+                setVisiblePasswords((current) => ({ ...current, newPassword: !current.newPassword }))
+              }
+              className={styles.passwordInput}
+              buttonClassName={styles.passwordToggle}
             />
             {errors.newPassword && <span className={styles.error}>{errors.newPassword}</span>}
           </div>
 
           <div className={styles.field}>
             <label>Confirm password</label>
-            <input
+            <PasswordInput
               name="confirmPassword"
-              type={showPassword ? "text" : "password"}
               placeholder="Confirm new password"
               value={form.confirmPassword}
               onChange={handleChange}
+              autoComplete="new-password"
+              visible={visiblePasswords.confirmPassword}
+              onToggle={() =>
+                setVisiblePasswords((current) => ({ ...current, confirmPassword: !current.confirmPassword }))
+              }
+              className={styles.passwordInput}
+              buttonClassName={styles.passwordToggle}
             />
             {errors.confirmPassword && <span className={styles.error}>{errors.confirmPassword}</span>}
           </div>

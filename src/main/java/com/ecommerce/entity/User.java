@@ -23,4 +23,11 @@ public class User {
 
 	@Column(nullable = false)
 	private String role = "USER";
+
+	private String phone;
+
+	private String profilePictureUrl;
+
+	@Column(length = 600)
+	private String address;
 }

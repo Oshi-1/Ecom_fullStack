@@ -130,7 +130,13 @@ export default function DashboardPage() {
         </div>
 
         <div className={styles.profileCard}>
-          <span>{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
+          <span>
+            {user?.profilePictureUrl ? (
+              <img src={user.profilePictureUrl} alt="" />
+            ) : (
+              user?.name?.charAt(0)?.toUpperCase() || "U"
+            )}
+          </span>
           <div>
             <strong>{user?.name || "User"}</strong>
             <small>{isAdmin ? "Administrator" : "Customer Account"}</small>
@@ -146,6 +152,9 @@ export default function DashboardPage() {
               )}
             </button>
           ))}
+          <button onClick={() => navigate("/profile")}>
+            <span>Profile</span>
+          </button>
           <button className={styles.logoutBtn} onClick={handleLogout}>
             <span>Logout</span>
           </button>
