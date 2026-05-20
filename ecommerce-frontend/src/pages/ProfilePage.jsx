@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { updateProfile } from "../api/authApi";
+import { updateProfile, updateProfileImage } from "../api/authApi";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
 import styles from "../styles/profile.module.css";
@@ -9,11 +9,22 @@ const emptyForm = {
   name: "",
   email: "",
   phone: "",
+  alternatePhone: "",
   profilePictureUrl: "",
   address: "",
   currentPassword: "",
   newPassword: "",
   confirmPassword: "",
+};
+
+const getIndianPhoneDigits = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.startsWith("91") && digits.length > 10 ? digits.slice(2, 12) : digits.slice(0, 10);
+};
+
+const formatIndianPhone = (value) => {
+  const digits = getIndianPhoneDigits(value);
+  return digits ? `+91${digits}` : "";
 };
 
 export default function ProfilePage() {
@@ -23,13 +34,17 @@ export default function ProfilePage() {
     ...emptyForm,
     name: user?.name || "",
     email: user?.email || "",
-    phone: user?.phone || "",
+    phone: getIndianPhoneDigits(user?.phone || ""),
+    alternatePhone: getIndianPhoneDigits(user?.alternatePhone || ""),
     profilePictureUrl: user?.profilePictureUrl || "",
     address: user?.address || "",
   }));
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(user?.profilePictureUrl || "");
+  const [imageOpen, setImageOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState({
     currentPassword: false,
     newPassword: false,
@@ -49,10 +64,42 @@ export default function ProfilePage() {
     setStatus("");
   };
 
+  const handlePhoneChange = (event) => {
+    const { name, value } = event.target;
+    const digits = value.replace(/\D/g, "").slice(0, 10);
+    setForm((current) => ({ ...current, [name]: digits }));
+    setErrors((current) => ({ ...current, [name]: "", general: "" }));
+    setStatus("");
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setErrors((current) => ({ ...current, profileImage: "Only JPG, PNG, and WebP images are allowed" }));
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors((current) => ({ ...current, profileImage: "Profile image cannot exceed 2 MB" }));
+      return;
+    }
+
+    setImageFile(file);
+    if (previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl(URL.createObjectURL(file));
+    setErrors((current) => ({ ...current, profileImage: "", general: "" }));
+    setStatus("");
+  };
+
   const validate = () => {
     const nextErrors = {};
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phonePattern = /^[0-9+\-()\s]{7,20}$/;
 
     if (!form.name.trim()) nextErrors.name = "Name is required";
     if (!form.email.trim()) {
@@ -60,11 +107,11 @@ export default function ProfilePage() {
     } else if (!emailPattern.test(form.email.trim())) {
       nextErrors.email = "Email must be valid";
     }
-    if (form.phone.trim() && !phonePattern.test(form.phone.trim())) {
-      nextErrors.phone = "Phone number must be valid";
+    if (form.phone.trim() && form.phone.trim().length !== 10) {
+      nextErrors.phone = "Enter a valid 10 digit phone number";
     }
-    if (form.profilePictureUrl.trim() && !/^https?:\/\/.+/i.test(form.profilePictureUrl.trim())) {
-      nextErrors.profilePictureUrl = "Use an http or https image URL";
+    if (form.alternatePhone.trim() && form.alternatePhone.trim().length !== 10) {
+      nextErrors.alternatePhone = "Enter a valid 10 digit alternate phone number";
     }
     if (form.address.length > 600) {
       nextErrors.address = "Address cannot exceed 600 characters";
@@ -99,21 +146,35 @@ export default function ProfilePage() {
       const payload = {
         name: form.name.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim(),
+        phone: formatIndianPhone(form.phone),
+        alternatePhone: formatIndianPhone(form.alternatePhone),
         profilePictureUrl: form.profilePictureUrl.trim(),
         address: form.address.trim(),
         currentPassword: form.currentPassword,
         newPassword: form.newPassword,
       };
-      const res = await updateProfile(payload);
-      const { token, ...userData } = res.data;
+      const profileRes = await updateProfile(payload);
+      let nextData = profileRes.data;
+
+      if (imageFile) {
+        const imageRes = await updateProfileImage(imageFile);
+        nextData = { ...nextData, ...imageRes.data };
+      }
+
+      const { token, ...userData } = nextData;
       updateUser(userData, token);
+      if (previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setPreviewUrl(userData.profilePictureUrl || "");
       setForm((current) => ({
         ...current,
+        profilePictureUrl: userData.profilePictureUrl || "",
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
       }));
+      setImageFile(null);
       setStatus("Profile saved");
     } catch (err) {
       const data = err.response?.data;
@@ -141,13 +202,39 @@ export default function ProfilePage() {
 
       <main className={styles.shell}>
         <aside className={styles.summary}>
-          <div className={styles.avatar}>
-            {form.profilePictureUrl ? <img src={form.profilePictureUrl} alt="" /> : <span>{initials}</span>}
+          <button
+            type="button"
+            className={styles.avatar}
+            onClick={() => previewUrl && setImageOpen(true)}
+            disabled={!previewUrl}
+            aria-label="View profile image"
+          >
+            {previewUrl ? <img src={previewUrl} alt="" /> : <span>{initials}</span>}
+          </button>
+          <div className={styles.uploadActions}>
+            <label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleImageChange} />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 20h14a2 2 0 0 0 2-2v-5h-2v5H5V6h6V4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Zm10-4h2V8h3l-4-4-4 4h3v8ZM7 16h10l-3.1-4.1-2.5 3.2-1.7-2.2L7 16Z" />
+              </svg>
+              Gallery
+            </label>
+            <label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                capture="environment"
+                onChange={handleImageChange}
+              />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 5 7.2 7H5a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3h-2.2L15 5H9Zm3 13a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9Zm0-2a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
+              </svg>
+              Camera
+            </label>
           </div>
+          {errors.profileImage && <small className={styles.imageError}>{errors.profileImage}</small>}
           <h2>{form.name || "Your name"}</h2>
           <p>{form.email || "you@example.com"}</p>
-          {form.phone && <strong>{form.phone}</strong>}
-          {form.address && <small>{form.address}</small>}
         </aside>
 
         <section className={styles.panel}>
@@ -170,19 +257,20 @@ export default function ProfilePage() {
 
               <label>
                 <span>Phone Number</span>
-                <input name="phone" value={form.phone} onChange={handleChange} autoComplete="tel" />
+                <div className={styles.phoneInput}>
+                  <span>+91</span>
+                  <input name="phone" value={form.phone} onChange={handlePhoneChange} autoComplete="tel" />
+                </div>
                 {errors.phone && <small>{errors.phone}</small>}
               </label>
 
               <label>
-                <span>Profile Picture URL</span>
-                <input
-                  name="profilePictureUrl"
-                  value={form.profilePictureUrl}
-                  onChange={handleChange}
-                  placeholder="https://example.com/photo.jpg"
-                />
-                {errors.profilePictureUrl && <small>{errors.profilePictureUrl}</small>}
+                <span>Alternate Phone Number</span>
+                <div className={styles.phoneInput}>
+                  <span>+91</span>
+                  <input name="alternatePhone" value={form.alternatePhone} onChange={handlePhoneChange} autoComplete="tel" />
+                </div>
+                {errors.alternatePhone && <small>{errors.alternatePhone}</small>}
               </label>
             </div>
 
@@ -262,6 +350,15 @@ export default function ProfilePage() {
           </form>
         </section>
       </main>
+
+      {imageOpen && (
+        <div className={styles.imageModal} onClick={() => setImageOpen(false)} role="presentation">
+          <button type="button" onClick={() => setImageOpen(false)} aria-label="Close image preview">
+            Close
+          </button>
+          <img src={previewUrl} alt="Profile preview" />
+        </div>
+      )}
     </div>
   );
 }

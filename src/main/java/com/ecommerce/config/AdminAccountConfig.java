@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.Instant;
 
 @Configuration
 public class AdminAccountConfig {
@@ -27,6 +28,10 @@ public class AdminAccountConfig {
 			admin.setName(adminName);
 			admin.setEmail(adminEmail);
 			admin.setPassword(passwordEncoder.encode(adminPassword));
+			admin.setPasswordUpdatedAt(Instant.now());
+			if (admin.getPasswordChangeCount() == null) {
+				admin.setPasswordChangeCount(0);
+			}
 			admin.setRole("ADMIN");
 			userRepository.save(admin);
 

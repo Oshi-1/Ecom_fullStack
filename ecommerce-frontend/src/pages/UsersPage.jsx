@@ -82,6 +82,8 @@ export default function UsersPage() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Password Changes</th>
+                <th>Password Updated</th>
               </tr>
             </thead>
             <tbody>
@@ -95,6 +97,10 @@ export default function UsersPage() {
                       {user.role}
                     </span>
                   </td>
+                  <td>
+                    <span className={styles.passwordCount}>{Number(user.passwordChangeCount || 0)}</span>
+                  </td>
+                  <td>{user.passwordUpdatedAt ? new Date(user.passwordUpdatedAt).toLocaleString() : "Not tracked"}</td>
                 </tr>
               ))}
             </tbody>

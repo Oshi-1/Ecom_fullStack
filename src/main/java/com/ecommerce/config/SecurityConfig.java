@@ -54,6 +54,7 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/auth/profile/image/**").permitAll()
 
 						// Public product browsing (GET only)
 						.requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()

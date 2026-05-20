@@ -2,14 +2,16 @@ package com.ecommerce.controller;
 
 import com.ecommerce.dto.*;
 import com.ecommerce.entity.User;
-import com.ecommerce.repository.UserRepository;
 import com.ecommerce.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,9 +20,6 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
-
-	@Autowired
-	private UserRepository userRepository;
 
 	@PostMapping("/register")
 	public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -42,23 +41,34 @@ public class AuthController {
 	// @AuthenticationPrincipal gives us the currently logged-in user
 	@GetMapping("/me")
 	public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
-		User user = userRepository.findByEmailIgnoreCase(userDetails.getUsername())
-				.orElseThrow(() -> new RuntimeException("User not found"));
-
-		return ResponseEntity.ok(new AuthResponse(
-				null,
-				user.getName(),
-				user.getEmail(),
-				user.getRole(),
-				user.getPhone(),
-				user.getProfilePictureUrl(),
-				user.getAddress()));
+		return ResponseEntity.ok(authService.getProfile(userDetails.getUsername()));
 	}
 
 	@PutMapping("/profile")
 	public ResponseEntity<AuthResponse> updateProfile(
 			@AuthenticationPrincipal UserDetails userDetails,
-			@Valid @RequestBody UpdateProfileRequest request) {
+			@RequestBody UpdateProfileRequest request) {
 		return ResponseEntity.ok(authService.updateProfile(userDetails.getUsername(), request));
+	}
+
+	@PostMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ResponseEntity<AuthResponse> updateProfileImage(
+			@AuthenticationPrincipal UserDetails userDetails,
+			@RequestParam("image") MultipartFile image) {
+		return ResponseEntity.ok(authService.updateProfileImage(userDetails.getUsername(), image));
+	}
+
+	@GetMapping("/profile/image/{userId}")
+	public ResponseEntity<byte[]> getProfileImage(@PathVariable Long userId) {
+		User user = authService.getUserById(userId);
+
+		if (user.getProfileImage() == null || user.getProfileImage().length == 0) {
+			return ResponseEntity.notFound().build();
+		}
+
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CACHE_CONTROL, "no-cache")
+				.contentType(MediaType.parseMediaType(user.getProfileImageContentType()))
+				.body(user.getProfileImage());
 	}
 }

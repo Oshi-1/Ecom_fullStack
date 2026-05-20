@@ -47,9 +47,9 @@
 
 .shell {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
-  gap: 20px;
-  width: min(1180px, 100%);
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+  width: min(1220px, 100%);
   margin: 0 auto;
 }
 
@@ -64,22 +64,29 @@
 .summary {
   align-self: start;
   display: grid;
-  gap: 12px;
-  justify-items: start;
-  padding: 24px;
+  gap: 14px;
+  justify-items: center;
+  padding: 28px;
+  text-align: center;
 }
 
 .avatar {
   display: grid;
   place-items: center;
   overflow: hidden;
-  width: 118px;
-  height: 118px;
-  border: 3px solid #ffffff;
-  border-radius: 8px;
-  background: #176b5b;
+  width: 220px;
+  height: 220px;
+  padding: 0;
+  border: 2px solid rgba(23, 107, 91, 0.28);
+  border-radius: 50%;
+  background: linear-gradient(135deg, #176b5b, #1f2933);
   color: #fffaf2;
-  box-shadow: 0 18px 36px rgba(23, 107, 91, 0.2);
+  cursor: pointer;
+  box-shadow: 0 24px 52px rgba(23, 107, 91, 0.18);
+}
+
+.avatar:disabled {
+  cursor: default;
 }
 
 .avatar img {
@@ -89,7 +96,7 @@
 }
 
 .avatar span {
-  font-size: 34px;
+  font-size: 60px;
   font-weight: 950;
 }
 
@@ -102,7 +109,8 @@
 }
 
 .summary h2 {
-  font-size: 26px;
+  margin-top: 8px;
+  font-size: 30px;
   line-height: 1.1;
 }
 
@@ -144,7 +152,9 @@
   gap: 7px;
 }
 
-.panel label span {
+.panel label span,
+.uploadField > span,
+.profileHint > span {
   color: #374151;
   font-size: 13px;
   font-weight: 900;
@@ -163,12 +173,44 @@
   outline: none;
 }
 
+.phoneInput {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid #dfd0bf;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.phoneInput > span {
+  display: grid;
+  place-items: center;
+  border-right: 1px solid #efe4d6;
+  background: #fff8ef;
+  color: #176b5b;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.phoneInput input {
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+}
+
+.phoneInput:focus-within {
+  border-color: #176b5b;
+  box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.13);
+}
+
 .passwordInput {
   position: relative;
+  width: 100%;
 }
 
 .passwordInput input {
-  padding-right: 52px;
+  padding-right: 44px;
 }
 
 .passwordToggle {
@@ -178,28 +220,33 @@
   transform: translateY(-50%);
   display: grid;
   place-items: center;
-  width: 36px;
-  min-height: 36px;
-  height: 36px;
+  width: 30px;
+  min-height: 30px;
+  height: 30px;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
   color: #6b7280;
   cursor: pointer;
+  box-shadow: none;
+  line-height: 1;
 }
 
 .passwordToggle svg {
-  width: 20px;
-  height: 20px;
+  width: 17px;
+  height: 17px;
   fill: currentColor;
 }
 
 .passwordToggle:hover,
-.passwordToggle:focus-visible {
-  background: #e4f3ec;
+.passwordToggle:focus-visible,
+.passwordToggle:active {
+  transform: translateY(-50%);
+  background: transparent;
   color: #176b5b;
   outline: none;
+  box-shadow: none;
 }
 
 .panel textarea {
@@ -213,9 +260,128 @@
   box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.13);
 }
 
+.phoneInput input:focus {
+  box-shadow: none;
+}
+
 .panel small {
   color: #b42318;
   font-size: 12px;
+}
+
+.uploadField,
+.profileHint {
+  display: grid;
+  gap: 7px;
+}
+
+.profileHint {
+  align-content: center;
+  min-height: 48px;
+  padding: 11px 14px;
+  border: 1px solid #dfd0bf;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.profileHint p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.uploadActions {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.uploadActions label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #176b5b;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.uploadActions label:hover,
+.uploadActions label:focus-within {
+  color: #cf4d39;
+}
+
+.uploadActions svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.uploadActions input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.uploadField em,
+.fileName {
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.imageError {
+  color: #b42318;
+  font-size: 12px;
+}
+
+.imageModal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgba(15, 23, 42, 0.78);
+}
+
+.imageModal img {
+  max-width: min(92vw, 760px);
+  max-height: 84vh;
+  border: 5px solid #fffaf2;
+  border-radius: 14px;
+  background: #fffaf2;
+  object-fit: contain;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.35);
+}
+
+.imageModal button {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #fffaf2;
+  color: #1f2933;
+  cursor: pointer;
+  font-weight: 900;
 }
 
 .actions {
@@ -281,9 +447,23 @@
     grid-template-columns: 1fr;
   }
 
+  .uploadActions {
+    justify-content: flex-start;
+  }
+
   .panel,
   .summary {
     padding: 20px;
+  }
+
+  .summary {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .avatar {
+    width: 170px;
+    height: 170px;
   }
 
   .actions {

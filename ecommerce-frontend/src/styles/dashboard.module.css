@@ -482,6 +482,20 @@
   border: 1px solid rgba(23, 107, 91, 0.25);
 }
 
+.passwordCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(23, 107, 91, 0.22);
+  border-radius: 8px;
+  background: #e4f3ec;
+  color: #176b5b;
+  font-size: 13px;
+  font-weight: 950;
+}
+
 .message,
 .error {
   max-width: 1120px;

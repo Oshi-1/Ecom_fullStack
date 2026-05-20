@@ -1,6 +1,7 @@
 package com.ecommerce.exception;
 
 import org.springframework.http.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,11 @@ public class GlobalExceptionHandler {
 		Map<String, String> errors = new LinkedHashMap<>();
 		ex.getBindingResult().getFieldErrors().forEach(e -> errors.put(e.getField(), e.getDefaultMessage()));
 		return ResponseEntity.badRequest().body(errors);
+	}
+
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<Map<String, String>> handleBadCredentials() {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid email or password"));
 	}
 
 	@ExceptionHandler(RuntimeException.class)

@@ -33,7 +33,12 @@ export default function LoginPage() {
       navigate("/dashboard");
     } catch (err) {
       const data = err.response?.data;
-      if (data?.error) {
+      const status = err.response?.status;
+      const errorText = String(data?.error || "").toLowerCase();
+
+      if (status === 401 || status === 403 || errorText.includes("bad credentials")) {
+        setErrors({ general: "Invalid email or password" });
+      } else if (data?.error) {
         setErrors({ general: data.error });
       } else if (data && typeof data === "object") {
         setErrors(data);

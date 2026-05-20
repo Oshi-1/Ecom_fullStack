@@ -30,8 +30,13 @@ public class AdminUserController {
 						user.getEmail(),
 						user.getRole(),
 						user.getPhone(),
-						user.getProfilePictureUrl(),
-						user.getAddress()))
+						user.getAlternatePhone(),
+						user.getProfileImage() != null && user.getProfileImage().length > 0
+								? "http://localhost:8081/api/auth/profile/image/" + user.getUserId()
+								: user.getProfilePictureUrl(),
+						user.getAddress(),
+						user.getPasswordUpdatedAt(),
+						user.getPasswordChangeCount()))
 				.toList();
 
 		return ResponseEntity.ok(users);
