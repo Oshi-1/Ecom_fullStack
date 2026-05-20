@@ -17,7 +17,10 @@ axiosInstance.interceptors.request.use((config) => {
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = error.config?.url || "";
+    const isLoginAttempt = requestUrl.includes("/auth/login");
+
+    if (error.response?.status === 401 && !isLoginAttempt) {
       // Token expired or invalid — clear storage and redirect to login
       localStorage.removeItem("token");
       localStorage.removeItem("user");

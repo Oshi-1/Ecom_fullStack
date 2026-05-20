@@ -1,4 +1,5 @@
 export default function PasswordInput({
+  id,
   name,
   value,
   onChange,
@@ -12,6 +13,7 @@ export default function PasswordInput({
   return (
     <div className={className}>
       <input
+        id={id}
         name={name}
         type={visible ? "text" : "password"}
         placeholder={placeholder}

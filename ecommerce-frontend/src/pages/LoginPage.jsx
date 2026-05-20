@@ -10,12 +10,16 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [authError, setAuthError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+    setErrors((current) => ({ ...current, [e.target.name]: "" }));
+    if (e.target.name === "email" || e.target.name === "password") {
+      setAuthError("");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -26,9 +30,10 @@ export default function LoginPage() {
       const res = await loginUser(form);
       const { token, ...userData } = res.data;
       if (!token) {
-        setErrors({ general: "Login succeeded, but no JWT token was returned." });
+        setAuthError("Login succeeded, but no JWT token was returned.");
         return;
       }
+      setAuthError("");
       login(userData, token);
       navigate("/dashboard");
     } catch (err) {
@@ -37,13 +42,13 @@ export default function LoginPage() {
       const errorText = String(data?.error || "").toLowerCase();
 
       if (status === 401 || status === 403 || errorText.includes("bad credentials")) {
-        setErrors({ general: "Invalid email or password" });
+        setAuthError("Invalid email or password");
       } else if (data?.error) {
-        setErrors({ general: data.error });
+        setAuthError(data.error);
       } else if (data && typeof data === "object") {
         setErrors(data);
       } else {
-        setErrors({ general: "Invalid email or password" });
+        setAuthError("Invalid email or password");
       }
     } finally {
       setLoading(false);
@@ -56,11 +61,22 @@ export default function LoginPage() {
         <span className={styles.formEyebrow}>Cartora</span>
         <h1 className={styles.title}>Sign in</h1>
         <p className={styles.subtitle}>Enter your details to continue shopping.</p>
+        {authError && <p className={styles.errorBanner}>{authError}</p>}
         {errors.general && <p className={styles.errorBanner}>{errors.general}</p>}
-        <form onSubmit={handleSubmit} className={styles.form}>
+        <form onSubmit={handleSubmit} className={styles.form} autoComplete="on">
           <div className={styles.field}>
             <label>Email</label>
-            <input name="email" type="email" placeholder="you@example.com" value={form.email} onChange={handleChange} />
+            <input
+              name="email"
+              id="login-email"
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="username"
+              autoCorrect="off"
+              spellCheck="false"
+            />
             {errors.email && <span className={styles.error}>{errors.email}</span>}
           </div>
           <div className={styles.field}>
@@ -70,6 +86,7 @@ export default function LoginPage() {
             </div>
             <PasswordInput
               name="password"
+              id="login-password"
               placeholder="Your password"
               value={form.password}
               onChange={handleChange}
