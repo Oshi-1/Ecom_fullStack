@@ -94,7 +94,17 @@ public class AuthServiceImpl implements AuthService {
 		User user = userRepository.findByEmailIgnoreCase(email)
 				.orElseThrow(() -> new RuntimeException("User not found"));
 
-		String updatedEmail = request.getEmail().trim().toLowerCase();
+		String updatedName = normalize(request.getName());
+		String updatedEmail = normalize(request.getEmail());
+
+		if (updatedName == null) {
+			throw new RuntimeException("Name is required");
+		}
+		if (updatedEmail == null) {
+			throw new RuntimeException("Email is required");
+		}
+
+		updatedEmail = updatedEmail.toLowerCase();
 		userRepository.findByEmailIgnoreCase(updatedEmail)
 				.filter(existing -> !existing.getUserId().equals(user.getUserId()))
 				.ifPresent(existing -> {
@@ -115,7 +125,7 @@ public class AuthServiceImpl implements AuthService {
 			incrementPasswordChangeCount(user);
 		}
 
-		user.setName(request.getName().trim());
+		user.setName(updatedName);
 		user.setEmail(updatedEmail);
 		user.setPhone(normalize(request.getPhone()));
 		user.setAlternatePhone(normalize(request.getAlternatePhone()));

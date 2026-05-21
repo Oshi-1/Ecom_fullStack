@@ -156,6 +156,10 @@ export default function ProfilePage() {
       const profileRes = await updateProfile(payload);
       let nextData = profileRes.data;
 
+      if (nextData.token) {
+        localStorage.setItem("token", nextData.token);
+      }
+
       if (imageFile) {
         const imageRes = await updateProfileImage(imageFile);
         nextData = { ...nextData, ...imageRes.data };
@@ -175,7 +179,7 @@ export default function ProfilePage() {
         confirmPassword: "",
       }));
       setImageFile(null);
-      setStatus("Profile saved");
+      setStatus("Profile updated");
     } catch (err) {
       const data = err.response?.data;
       if (data?.error) {

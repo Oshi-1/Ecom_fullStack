@@ -420,9 +420,27 @@
 }
 
 .successBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   border: 1px solid rgba(24, 63, 53, 0.2);
   background: var(--forest-soft);
   color: var(--forest);
+  font-weight: 900;
+}
+
+.successBanner::before {
+  content: "✓";
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
 }
 
 @media (max-width: 900px) {
