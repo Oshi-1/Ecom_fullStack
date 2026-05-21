@@ -2,10 +2,10 @@
   min-height: 100vh;
   padding: 28px;
   background:
-    linear-gradient(120deg, rgba(23, 107, 91, 0.12), transparent 34%),
-    linear-gradient(240deg, rgba(239, 106, 82, 0.13), transparent 30%),
-    #f7f1e8;
-  color: #1f2933;
+    radial-gradient(circle at 12% 0%, rgba(185, 151, 91, 0.16), transparent 30%),
+    radial-gradient(circle at 86% 2%, rgba(24, 63, 53, 0.1), transparent 28%),
+    linear-gradient(135deg, rgba(255, 250, 240, 0.95), rgba(232, 222, 204, 0.9));
+  color: var(--ink);
 }
 
 .topbar {
@@ -21,19 +21,19 @@
   min-height: 44px;
   padding: 0 18px;
   border: 0;
-  border-radius: 8px;
-  background: #ef6a52;
-  color: #fffaf2;
+  border-radius: 999px;
+  background: var(--forest);
+  color: var(--ivory);
   cursor: pointer;
   font-weight: 900;
 }
 
 .topbar button {
-  background: #1f2933;
+  background: var(--charcoal);
 }
 
 .topbar span {
-  color: #176b5b;
+  color: var(--forest);
   font-size: 12px;
   font-weight: 950;
   text-transform: uppercase;
@@ -41,6 +41,7 @@
 
 .topbar h1 {
   margin: 3px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 36px;
   line-height: 1;
 }
@@ -55,10 +56,11 @@
 
 .summary,
 .panel {
-  border: 1px solid #eadfce;
-  border-radius: 8px;
-  background: #fffaf2;
-  box-shadow: 0 22px 52px rgba(68, 48, 31, 0.12);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
 }
 
 .summary {
@@ -77,10 +79,10 @@
   width: 220px;
   height: 220px;
   padding: 0;
-  border: 2px solid rgba(23, 107, 91, 0.28);
+  border: 2px solid rgba(24, 63, 53, 0.28);
   border-radius: 50%;
-  background: linear-gradient(135deg, #176b5b, #1f2933);
-  color: #fffaf2;
+  background: linear-gradient(135deg, var(--forest), var(--charcoal));
+  color: var(--ivory);
   cursor: pointer;
   box-shadow: 0 24px 52px rgba(23, 107, 91, 0.18);
 }
@@ -110,18 +112,19 @@
 
 .summary h2 {
   margin-top: 8px;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 30px;
   line-height: 1.1;
 }
 
 .summary p,
 .summary small {
-  color: #6b7280;
+  color: var(--muted);
   line-height: 1.55;
 }
 
 .summary strong {
-  color: #cf4d39;
+  color: var(--forest);
   font-size: 14px;
 }
 
@@ -155,7 +158,7 @@
 .panel label span,
 .uploadField > span,
 .profileHint > span {
-  color: #374151;
+  color: var(--charcoal);
   font-size: 13px;
   font-weight: 900;
 }
@@ -165,10 +168,10 @@
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
-  border: 1px solid #dfd0bf;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1f2933;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--ink);
   font: inherit;
   outline: none;
 }
@@ -178,17 +181,17 @@
   grid-template-columns: 58px minmax(0, 1fr);
   align-items: stretch;
   overflow: hidden;
-  border: 1px solid #dfd0bf;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .phoneInput > span {
   display: grid;
   place-items: center;
   border-right: 1px solid #efe4d6;
-  background: #fff8ef;
-  color: #176b5b;
+  background: rgba(239, 229, 210, 0.72);
+  color: var(--forest);
   font-size: 14px;
   font-weight: 950;
 }
@@ -200,8 +203,8 @@
 }
 
 .phoneInput:focus-within {
-  border-color: #176b5b;
-  box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.13);
+  border-color: var(--forest);
+  box-shadow: 0 0 0 4px rgba(24, 63, 53, 0.11);
 }
 
 .passwordInput {
@@ -227,7 +230,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #6b7280;
+  color: var(--muted);
   cursor: pointer;
   box-shadow: none;
   line-height: 1;
@@ -244,7 +247,7 @@
 .passwordToggle:active {
   transform: translateY(-50%);
   background: transparent;
-  color: #176b5b;
+  color: var(--forest);
   outline: none;
   box-shadow: none;
 }
@@ -256,8 +259,8 @@
 
 .panel input:focus,
 .panel textarea:focus {
-  border-color: #176b5b;
-  box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.13);
+  border-color: var(--forest);
+  box-shadow: 0 0 0 4px rgba(24, 63, 53, 0.11);
 }
 
 .phoneInput input:focus {
@@ -265,7 +268,7 @@
 }
 
 .panel small {
-  color: #b42318;
+  color: #8c2f25;
   font-size: 12px;
 }
 
@@ -279,14 +282,14 @@
   align-content: center;
   min-height: 48px;
   padding: 11px 14px;
-  border: 1px solid #dfd0bf;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
 }
 
 .profileHint p {
   margin: 0;
-  color: #6b7280;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -308,7 +311,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #176b5b;
+  color: var(--forest);
   cursor: pointer;
   font-size: 13px;
   font-weight: 850;
@@ -317,7 +320,7 @@
 
 .uploadActions label:hover,
 .uploadActions label:focus-within {
-  color: #cf4d39;
+  color: var(--gold);
 }
 
 .uploadActions svg {
@@ -337,7 +340,7 @@
 .uploadField em,
 .fileName {
   overflow: hidden;
-  color: #6b7280;
+  color: var(--muted);
   font-size: 12px;
   font-style: normal;
   text-overflow: ellipsis;
@@ -346,7 +349,7 @@
 }
 
 .imageError {
-  color: #b42318;
+  color: #8c2f25;
   font-size: 12px;
 }
 
@@ -378,8 +381,8 @@
   padding: 0 14px;
   border: 0;
   border-radius: 8px;
-  background: #fffaf2;
-  color: #1f2933;
+  background: var(--ivory);
+  color: var(--ink);
   cursor: pointer;
   font-weight: 900;
 }
@@ -397,8 +400,8 @@
 
 .secondaryBtn {
   border: 1px solid #dfd0bf !important;
-  background: #ffffff !important;
-  color: #374151 !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: var(--charcoal) !important;
 }
 
 .errorBanner,
@@ -411,15 +414,15 @@
 }
 
 .errorBanner {
-  border: 1px solid rgba(180, 35, 24, 0.22);
-  background: #fff0eb;
-  color: #9f271b;
+  border: 1px solid rgba(140, 47, 37, 0.2);
+  background: rgba(255, 238, 229, 0.78);
+  color: #7a2a22;
 }
 
 .successBanner {
-  border: 1px solid rgba(23, 107, 91, 0.22);
-  background: #e4f3ec;
-  color: #176b5b;
+  border: 1px solid rgba(24, 63, 53, 0.2);
+  background: var(--forest-soft);
+  color: var(--forest);
 }
 
 @media (max-width: 900px) {

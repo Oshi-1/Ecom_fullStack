@@ -4,30 +4,31 @@
   place-items: center;
   padding: 34px 18px;
   background:
-    radial-gradient(circle at 18% 16%, rgba(239, 106, 82, 0.16), transparent 28%),
-    radial-gradient(circle at 82% 18%, rgba(23, 107, 91, 0.13), transparent 24%),
-    #f7f1e8;
-  color: #1f2933;
+    linear-gradient(90deg, rgba(16, 18, 16, 0.72), rgba(16, 18, 16, 0.16)),
+    url("../assets/hero.png") center / cover;
+  color: var(--ink);
 }
 
 .authCard {
   position: relative;
   width: min(460px, 100%);
   padding: 42px;
-  border: 1px solid #eadfce;
-  border-radius: 8px;
-  background: rgba(255, 250, 242, 0.96);
-  box-shadow: 0 28px 70px rgba(68, 48, 31, 0.16);
+  border: 1px solid rgba(255, 250, 240, 0.36);
+  border-radius: 24px;
+  background: rgba(255, 250, 240, 0.84);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+  animation: premiumFadeUp 0.45s ease both;
 }
 
 .formEyebrow {
   display: inline-flex;
   width: max-content;
-  padding: 7px 10px;
-  border: 1px solid rgba(239, 106, 82, 0.42);
-  border-radius: 8px;
-  background: #fff0eb;
-  color: #cf4d39;
+  padding: 7px 11px;
+  border: 1px solid rgba(185, 151, 91, 0.36);
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.54);
+  color: var(--forest);
   font-size: 12px;
   font-weight: 900;
   text-transform: uppercase;
@@ -35,15 +36,16 @@
 
 .title {
   margin: 18px 0 8px;
-  color: #1f2933;
-  font-size: 38px;
-  font-weight: 900;
-  line-height: 1.05;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.02;
 }
 
 .subtitle {
   margin: 0 0 28px;
-  color: #6b7280;
+  color: var(--muted);
   font-size: 15px;
   line-height: 1.6;
 }
@@ -59,7 +61,7 @@
 }
 
 .field label {
-  color: #374151;
+  color: var(--charcoal);
   font-size: 13px;
   font-weight: 900;
 }
@@ -73,7 +75,7 @@
 
 .labelRow a,
 .labelRow button {
-  color: #176b5b;
+  color: var(--forest);
   font-size: 13px;
   font-weight: 900;
   text-decoration: none;
@@ -89,17 +91,17 @@
 
 .labelRow a:hover,
 .labelRow button:hover {
-  color: #ef6a52;
+  color: var(--gold);
 }
 
 .field input {
   width: 100%;
   min-height: 50px;
   padding: 12px 14px;
-  border: 1px solid #dfd0bf;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #1f2933;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.74);
+  color: var(--ink);
   outline: none;
 }
 
@@ -125,7 +127,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #6b7280;
+  color: var(--muted);
   cursor: pointer;
   box-shadow: none;
   line-height: 1;
@@ -142,18 +144,18 @@
 .passwordToggle:active {
   transform: translateY(-50%);
   background: transparent;
-  color: #176b5b;
+  color: var(--forest);
   outline: none;
   box-shadow: none;
 }
 
 .field input::placeholder {
-  color: #a59b90;
+  color: #9b9386;
 }
 
 .field input:focus {
-  border-color: #176b5b;
-  box-shadow: 0 0 0 4px rgba(23, 107, 91, 0.13);
+  border-color: var(--forest);
+  box-shadow: 0 0 0 4px rgba(24, 63, 53, 0.11);
 }
 
 .btn {
@@ -161,17 +163,17 @@
   margin-top: 8px;
   padding: 0 18px;
   border: 0;
-  border-radius: 8px;
-  background: #ef6a52;
-  color: #fffaf2;
+  border-radius: 999px;
+  background: var(--forest);
+  color: var(--ivory);
   cursor: pointer;
   font-size: 15px;
   font-weight: 900;
-  box-shadow: 0 16px 32px rgba(239, 106, 82, 0.24);
+  box-shadow: 0 16px 32px rgba(24, 63, 53, 0.2);
 }
 
 .btn:hover {
-  background: #cf4d39;
+  background: #102d26;
 }
 
 .btn:disabled {
@@ -181,47 +183,46 @@
 }
 
 .error {
-  color: #b42318;
+  color: #8c2f25;
   font-size: 12px;
 }
 
-.errorBanner {
+.errorBanner,
+.successBanner {
   margin: 0 0 16px;
   padding: 12px 13px;
-  border: 1px solid rgba(180, 35, 24, 0.22);
-  border-radius: 8px;
-  background: #fff0eb;
-  color: #9f271b;
+  border-radius: 14px;
   font-size: 14px;
   line-height: 1.45;
 }
 
+.errorBanner {
+  border: 1px solid rgba(140, 47, 37, 0.2);
+  background: rgba(255, 238, 229, 0.78);
+  color: #7a2a22;
+}
+
 .successBanner {
-  margin: 0 0 16px;
-  padding: 12px 13px;
-  border: 1px solid rgba(23, 107, 91, 0.24);
-  border-radius: 8px;
-  background: #e4f3ec;
-  color: #176b5b;
-  font-size: 14px;
-  line-height: 1.45;
+  border: 1px solid rgba(24, 63, 53, 0.2);
+  background: var(--forest-soft);
+  color: var(--forest);
 }
 
 .switchLink {
   margin: 22px 0 0;
-  color: #6b7280;
+  color: var(--muted);
   font-size: 14px;
   text-align: center;
 }
 
 .switchLink a {
-  color: #176b5b;
+  color: var(--forest);
   font-weight: 900;
   text-decoration: none;
 }
 
 .switchLink a:hover {
-  color: #ef6a52;
+  color: var(--gold);
 }
 
 @media (max-width: 520px) {
@@ -230,6 +231,6 @@
   }
 
   .title {
-    font-size: 32px;
+    font-size: 36px;
   }
 }

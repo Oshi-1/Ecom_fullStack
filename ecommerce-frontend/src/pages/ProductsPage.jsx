@@ -166,7 +166,15 @@ export default function ProductsPage() {
       )}
 
       <div className={styles.topBar}>
-        <h1>{isAdmin ? "Manage Products" : "Explore Products"}</h1>
+        <div>
+          <span className={styles.heroEyebrow}>{isAdmin ? "Private Atelier" : "Cartora Studio"}</span>
+          <h1>{isAdmin ? "Manage the collection with calm precision." : "Curated essentials for modern living."}</h1>
+          <p>
+            {isAdmin
+              ? "Edit product stories, pricing, and availability from a refined command surface."
+              : "Discover elevated pieces with quiet details, tactile finishes, and effortless everyday polish."}
+          </p>
+        </div>
         <div className={styles.topActions}>
           {isAdmin && (
             <button type="button" onClick={() => navigate("/products/new")}>
@@ -183,6 +191,26 @@ export default function ProductsPage() {
           </button>
         </div>
       </div>
+
+      {!isAdmin && (
+        <section className={styles.editorialStrip}>
+          <div>
+            <span>01</span>
+            <strong>Featured Collections</strong>
+            <p>Seasonless silhouettes and refined everyday pieces.</p>
+          </div>
+          <div>
+            <span>02</span>
+            <strong>Premium Finish</strong>
+            <p>Clean materials, softer tones, and enduring detail.</p>
+          </div>
+          <div>
+            <span>03</span>
+            <strong>Fast Checkout</strong>
+            <p>A polished buying flow from cart to confirmation.</p>
+          </div>
+        </section>
+      )}
 
       <form onSubmit={handleSearch} className={styles.searchBar}>
         <input
@@ -233,10 +261,12 @@ export default function ProductsPage() {
             >
               <div className={styles.imageWrapper}>
                 <img
+                  loading="lazy"
                   src={product.imageUrl || productImageFallback(product.name)}
                   alt={product.name}
                   onError={(event) => handleProductImageError(event, product.name)}
                 />
+                {!isAdmin && <button type="button" className={styles.wishlistBtn} onClick={(event) => event.stopPropagation()}>♡</button>}
                 <div className={styles.overlay}>
                   <span>View Details</span>
                 </div>
@@ -284,6 +314,31 @@ export default function ProductsPage() {
             </article>
           ))}
         </div>
+      )}
+
+      {!isAdmin && !loading && !error && products.length > 0 && (
+        <>
+          <section className={styles.storySection}>
+            <div>
+              <span className={styles.heroEyebrow}>Brand Journal</span>
+              <h2>Designed for a quieter kind of luxury.</h2>
+              <p>
+                Cartora pairs modern utility with editorial styling, giving every product enough room to breathe and
+                every customer a smoother path to purchase.
+              </p>
+            </div>
+            <div className={styles.storyImage} aria-hidden="true" />
+          </section>
+
+          <section className={styles.newsletter}>
+            <span>Private List</span>
+            <h2>Get early access to new drops.</h2>
+            <form>
+              <input type="email" placeholder="Email address" />
+              <button type="button">Join</button>
+            </form>
+          </section>
+        </>
       )}
     </div>
   );
