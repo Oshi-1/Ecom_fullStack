@@ -3,11 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../api/authApi";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/register.module.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useNotification();
 
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -31,15 +33,19 @@ export default function RegisterPage() {
         return;
       }
       login(userData, token);
+      showSuccess("Account created successfully. You are logged in now.");
       navigate("/dashboard");
     } catch (err) {
       const data = err.response?.data;
       if (data?.error) {
         setErrors({ general: data.error });
+        showError(data.error);
       } else if (data && typeof data === "object") {
         setErrors(data);
+        showError(Object.values(data)[0] || "Please check the highlighted fields.");
       } else {
         setErrors({ general: "Registration failed" });
+        showError("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);

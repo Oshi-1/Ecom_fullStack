@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { addProduct, getProductById, updateProduct } from "../api/ProductApi";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/products.module.css";
 
 const initialForm = {
@@ -33,6 +34,7 @@ function getApiError(err, fallback) {
 
 export default function AddProductPage() {
   const navigate = useNavigate();
+  const { showError } = useNotification();
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [form, setForm] = useState(initialForm);
@@ -62,7 +64,9 @@ export default function AddProductPage() {
         }
       } catch (err) {
         if (active) {
-          setError(getApiError(err, "Product could not be loaded"));
+          const message = getApiError(err, "Product could not be loaded");
+          setError(message);
+          showError(message);
         }
       } finally {
         if (active) {
@@ -104,7 +108,9 @@ export default function AddProductPage() {
         },
       });
     } catch (err) {
-      setError(getApiError(err, `Product could not be ${isEditMode ? "updated" : "added"}`));
+      const message = getApiError(err, `Product could not be ${isEditMode ? "updated" : "added"}`);
+      setError(message);
+      showError(message);
     } finally {
       setSaving(false);
     }

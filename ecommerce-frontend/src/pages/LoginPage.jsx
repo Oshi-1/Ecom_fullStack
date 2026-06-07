@@ -3,11 +3,13 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/auth.module.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [authError, setAuthError] = useState("");
@@ -35,6 +37,7 @@ export default function LoginPage() {
       }
       setAuthError("");
       login(userData, token);
+      showSuccess("Login successfully. Welcome back to Cartora.");
       navigate("/dashboard");
     } catch (err) {
       const data = err.response?.data;
@@ -43,12 +46,16 @@ export default function LoginPage() {
 
       if (status === 401 || status === 403 || errorText.includes("bad credentials")) {
         setAuthError("Invalid email or password");
+        showError("Incorrect email or password.");
       } else if (data?.error) {
         setAuthError(data.error);
+        showError(data.error);
       } else if (data && typeof data === "object") {
         setErrors(data);
+        showError(Object.values(data)[0] || "Please check the highlighted fields.");
       } else {
         setAuthError("Invalid email or password");
+        showError("Incorrect email or password.");
       }
     } finally {
       setLoading(false);

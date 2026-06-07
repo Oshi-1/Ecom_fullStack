@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearCart, getCart, removeCartItem, updateCartItem } from "../api/cartApi";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
 import styles from "../styles/products.module.css";
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [cart, setCart] = useState({ items: [], totalItems: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,6 +23,7 @@ export default function CartPage() {
       setCart(res.data);
     } catch {
       setError("Failed to load cart");
+      showError("Failed to load cart.");
     } finally {
       setLoading(false);
     }
@@ -48,6 +51,7 @@ export default function CartPage() {
       } catch {
         if (active) {
           setError("Failed to load cart");
+          showError("Failed to load cart.");
         }
       } finally {
         if (active) {
@@ -73,8 +77,11 @@ export default function CartPage() {
     try {
       const res = await updateCartItem(item.cartItemId, nextQuantity);
       setCart(res.data);
+      showSuccess("Cart quantity updated.");
     } catch (err) {
-      setError(err.response?.data?.error || "Quantity could not be updated");
+      const message = err.response?.data?.error || "Quantity could not be updated";
+      setError(message);
+      showError(message);
     }
   };
 
@@ -82,8 +89,10 @@ export default function CartPage() {
     try {
       const res = await removeCartItem(cartItemId);
       setCart(res.data);
+      showSuccess("Item removed from cart.");
     } catch {
       setError("Item could not be removed");
+      showError("Item could not be removed.");
     }
   };
 
@@ -91,8 +100,10 @@ export default function CartPage() {
     try {
       await clearCart();
       await loadCart();
+      showSuccess("Cart cleared successfully.");
     } catch {
       setError("Cart could not be cleared");
+      showError("Cart could not be cleared.");
     }
   };
 

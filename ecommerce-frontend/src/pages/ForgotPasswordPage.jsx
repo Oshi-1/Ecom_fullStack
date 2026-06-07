@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { forgotPassword } from "../api/authApi";
 import PasswordInput from "../components/PasswordInput";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/auth.module.css";
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
+  const { showSuccess, showError } = useNotification();
   const [form, setForm] = useState({ email: "", newPassword: "", confirmPassword: "" });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState("");
@@ -72,20 +74,26 @@ export default function ForgotPasswordPage() {
         newPassword: form.newPassword,
       });
       setSuccess("Password reset successfully. Sign in with your new password.");
+      showSuccess("Password reset successfully. Sign in with your new password.");
       setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       const data = err.response?.data;
 
       if (data?.error) {
         setErrors({ general: data.error });
+        showError(data.error);
       } else if (data && typeof data === "object") {
         setErrors(data);
+        showError(Object.values(data)[0] || "Please check the highlighted fields.");
       } else if (err.response?.status === 403) {
         setErrors({ general: "Reset request was blocked. Please refresh and try again." });
+        showError("Reset request was blocked. Please refresh and try again.");
       } else if (!err.response) {
         setErrors({ general: "Backend is not reachable. Please make sure the server is running." });
+        showError("Backend is not reachable. Please make sure the server is running.");
       } else {
         setErrors({ general: "Password could not be reset" });
+        showError("Password could not be reset.");
       }
     } finally {
       setLoading(false);

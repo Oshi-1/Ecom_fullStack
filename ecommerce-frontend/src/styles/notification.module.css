@@ -1,0 +1,93 @@
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 13px;
+  align-items: flex-start;
+  width: min(390px, calc(100vw - 32px));
+  padding: 16px 16px 16px 15px;
+  border: 1px solid rgba(255, 250, 240, 0.58);
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.94);
+  box-shadow: 0 20px 50px rgba(36, 30, 21, 0.2);
+  color: var(--ink);
+  backdrop-filter: blur(18px);
+  animation: toastIn 0.28s ease both;
+}
+
+.mark {
+  width: 12px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--forest);
+}
+
+.success .mark {
+  background: #166534;
+}
+
+.error .mark {
+  background: #b42318;
+}
+
+.info .mark {
+  background: var(--gold);
+}
+
+.toast strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.toast p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.toast button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.64);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.toast button:hover {
+  transform: none;
+  color: var(--ink);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .toast {
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+    width: auto;
+  }
+}

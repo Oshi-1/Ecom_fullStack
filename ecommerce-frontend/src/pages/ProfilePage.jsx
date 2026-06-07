@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { updateProfile, updateProfileImage } from "../api/authApi";
 import PasswordInput from "../components/PasswordInput";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/profile.module.css";
 
 const emptyForm = {
@@ -30,6 +31,7 @@ const formatIndianPhone = (value) => {
 export default function ProfilePage() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [form, setForm] = useState(() => ({
     ...emptyForm,
     name: user?.name || "",
@@ -80,11 +82,13 @@ export default function ProfilePage() {
 
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       setErrors((current) => ({ ...current, profileImage: "Only JPG, PNG, and WebP images are allowed" }));
+      showError("Only JPG, PNG, and WebP images are allowed.");
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
       setErrors((current) => ({ ...current, profileImage: "Profile image cannot exceed 2 MB" }));
+      showError("Profile image cannot exceed 2 MB.");
       return;
     }
 
@@ -180,14 +184,18 @@ export default function ProfilePage() {
       }));
       setImageFile(null);
       setStatus("Profile updated");
+      showSuccess("Profile updated successfully.");
     } catch (err) {
       const data = err.response?.data;
       if (data?.error) {
         setErrors({ general: data.error });
+        showError(data.error);
       } else if (data && typeof data === "object") {
         setErrors(data);
+        showError(Object.values(data)[0] || "Please check the highlighted fields.");
       } else {
         setErrors({ general: "Profile could not be saved" });
+        showError("Profile could not be saved.");
       }
     } finally {
       setSaving(false);

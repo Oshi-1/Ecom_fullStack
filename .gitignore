@@ -32,3 +32,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+node_modules/
+outputs/
+test-output/
+target/
+bin/

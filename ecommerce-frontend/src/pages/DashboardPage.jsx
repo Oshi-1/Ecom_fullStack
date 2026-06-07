@@ -4,6 +4,7 @@ import { getAdminOrders, getAdminUsers } from "../api/adminApi";
 import { getCart } from "../api/cartApi";
 import { getMyOrders } from "../api/orderApi";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/dashboard.module.css";
 
 const customerActions = [
@@ -21,6 +22,7 @@ const adminActions = [
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+  const { showInfo } = useNotification();
   const navigate = useNavigate();
   const isAdmin = user?.role === "ADMIN";
   const [metrics, setMetrics] = useState({
@@ -115,6 +117,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     logout();
+    showInfo("Logged out successfully.");
     navigate("/login");
   };
 

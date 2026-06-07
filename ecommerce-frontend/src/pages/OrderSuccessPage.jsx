@@ -1,10 +1,19 @@
+import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useNotification } from "../context/useNotification";
 import styles from "../styles/products.module.css";
 
 export default function OrderSuccessPage() {
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { showSuccess } = useNotification();
   const order = state?.order;
+
+  useEffect(() => {
+    if (state?.toast?.message) {
+      showSuccess(state.toast.message);
+    }
+  }, [showSuccess, state]);
 
   if (!order) {
     return (

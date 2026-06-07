@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { deleteProduct, getAllProducts, searchProducts } from "../api/ProductApi";
 import { addToCart } from "../api/cartApi";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
 import styles from "../styles/products.module.css";
 
@@ -15,19 +16,28 @@ export default function ProductsPage() {
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const location = useLocation();
   const navigate = useNavigate();
   const isAdmin = user?.role === "ADMIN";
 
   useEffect(() => {
     if (location.state?.toast) {
-      const timer = window.setTimeout(() => setToast(location.state.toast), 0);
+      const { type, message } = location.state.toast;
+      const timer = window.setTimeout(() => {
+        setToast(location.state.toast);
+        if (type === "error") {
+          showError(message);
+        } else {
+          showSuccess(message);
+        }
+      }, 0);
       navigate(location.pathname, { replace: true, state: {} });
       return () => window.clearTimeout(timer);
     }
 
     return undefined;
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, showError, showSuccess]);
 
   useEffect(() => {
     if (!toast) {
@@ -51,6 +61,7 @@ export default function ProductsPage() {
       } catch {
         if (active) {
           setError("Failed to load products");
+          showError("Failed to load products.");
         }
       } finally {
         if (active) {
@@ -76,6 +87,7 @@ export default function ProductsPage() {
       setProducts(res.data);
     } catch {
       setError("Search failed");
+      showError("Search failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -106,6 +118,7 @@ export default function ProductsPage() {
     event.stopPropagation();
     if (isAdmin) {
       setToast({ type: "error", message: "Admin users manage products and cannot add items to cart" });
+      showError("Admin users manage products and cannot add items to cart.");
       return;
     }
 
@@ -115,8 +128,11 @@ export default function ProductsPage() {
     try {
       await addToCart(product.productId, 1);
       setToast({ type: "success", message: `${product.name} added to cart` });
+      showSuccess(`${product.name} added to cart.`);
     } catch (err) {
-      setToast({ type: "error", message: err.response?.data?.error || "Product could not be added to cart" });
+      const message = err.response?.data?.error || "Product could not be added to cart";
+      setToast({ type: "error", message });
+      showError(message);
     }
   };
 
@@ -130,8 +146,11 @@ export default function ProductsPage() {
       setAllProducts((current) => current.filter((item) => item.productId !== product.productId));
       setProducts((current) => current.filter((item) => item.productId !== product.productId));
       setToast({ type: "success", message: `${product.name} deleted successfully` });
+      showSuccess(`${product.name} deleted successfully.`);
     } catch (err) {
-      setToast({ type: "error", message: err.response?.data?.error || "Product could not be deleted" });
+      const message = err.response?.data?.error || "Product could not be deleted";
+      setToast({ type: "error", message });
+      showError(message);
     }
   };
 

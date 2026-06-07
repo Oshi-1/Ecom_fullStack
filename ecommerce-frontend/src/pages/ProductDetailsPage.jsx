@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { addToCart } from "../api/cartApi";
 import { deleteProduct, getProductById } from "../api/ProductApi";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
 import styles from "../styles/products.module.css";
 
@@ -11,6 +12,7 @@ export default function ProductDetailsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showSuccess, showError } = useNotification();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -22,13 +24,21 @@ export default function ProductDetailsPage() {
 
   useEffect(() => {
     if (location.state?.toast) {
-      const timer = window.setTimeout(() => setToast(location.state.toast), 0);
+      const { type, message } = location.state.toast;
+      const timer = window.setTimeout(() => {
+        setToast(location.state.toast);
+        if (type === "error") {
+          showError(message);
+        } else {
+          showSuccess(message);
+        }
+      }, 0);
       navigate(location.pathname, { replace: true, state: {} });
       return () => window.clearTimeout(timer);
     }
 
     return undefined;
-  }, [location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate, showError, showSuccess]);
 
   useEffect(() => {
     if (!toast) {
@@ -51,6 +61,7 @@ export default function ProductDetailsPage() {
       } catch {
         if (active) {
           setError("Product details not found");
+          showError("Product details not found.");
         }
       } finally {
         if (active) {
@@ -76,6 +87,7 @@ export default function ProductDetailsPage() {
   const handleAddToCart = async () => {
     if (isAdmin) {
       setToast({ type: "error", message: "Admin users manage products and cannot add items to cart" });
+      showError("Admin users manage products and cannot add items to cart.");
       return;
     }
 
@@ -89,8 +101,11 @@ export default function ProductDetailsPage() {
         type: "success",
         message: `${quantity} item${quantity > 1 ? "s" : ""} added to cart`,
       });
+      showSuccess(`${quantity} item${quantity > 1 ? "s" : ""} added to cart.`);
     } catch (err) {
-      setToast({ type: "error", message: err.response?.data?.error || "Product could not be added to cart" });
+      const message = err.response?.data?.error || "Product could not be added to cart";
+      setToast({ type: "error", message });
+      showError(message);
     } finally {
       setSaving(false);
     }
@@ -109,7 +124,9 @@ export default function ProductDetailsPage() {
         },
       });
     } catch (err) {
-      setToast({ type: "error", message: err.response?.data?.error || "Product could not be deleted" });
+      const message = err.response?.data?.error || "Product could not be deleted";
+      setToast({ type: "error", message });
+      showError(message);
     } finally {
       setSaving(false);
     }

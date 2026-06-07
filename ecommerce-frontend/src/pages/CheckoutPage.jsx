@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { clearCart, getCart } from "../api/cartApi";
 import { placeOrder } from "../api/orderApi";
 import { useAuth } from "../context/useAuth";
+import { useNotification } from "../context/useNotification";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
 import styles from "../styles/products.module.css";
 
@@ -19,6 +20,7 @@ const initialForm = {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showError } = useNotification();
   const [cart, setCart] = useState({ items: [], totalItems: 0, totalAmount: 0 });
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,7 @@ export default function CheckoutPage() {
       } catch {
         if (active) {
           setError("Checkout could not be loaded");
+          showError("Checkout could not be loaded.");
         }
       } finally {
         if (active) {
@@ -118,6 +121,9 @@ export default function CheckoutPage() {
     }
 
     setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      showError(Object.values(errors)[0]);
+    }
     return Object.keys(errors).length === 0;
   };
 
@@ -155,6 +161,7 @@ export default function CheckoutPage() {
 
     if (!shippingAddress) {
       setError("Shipping address is required");
+      showError("Shipping address is required.");
       return;
     }
 
@@ -172,7 +179,9 @@ export default function CheckoutPage() {
         },
       });
     } catch (err) {
-      setError(getApiError(err));
+      const message = getApiError(err);
+      setError(message);
+      showError(message);
     } finally {
       setSubmitting(false);
     }
