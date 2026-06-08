@@ -1,6 +1,8 @@
 package com.ecommerce.selenium.pages;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -104,7 +106,7 @@ public class RegisterPage {
     }
 
     public void clickSignIn() {
-        driver.findElement(signInLink).click();
+        clickWhenReady(signInLink);
         wait.until(ExpectedConditions.urlContains("/login"));
     }
 
@@ -112,5 +114,16 @@ public class RegisterPage {
         WebElement element = driver.findElement(locator);
         element.clear();
         element.sendKeys(value);
+    }
+
+    private void clickWhenReady(By locator) {
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(locator));
+        ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({block: 'center', inline: 'center'});", element);
+        try {
+            element.click();
+        } catch (ElementClickInterceptedException ex) {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        }
     }
 }

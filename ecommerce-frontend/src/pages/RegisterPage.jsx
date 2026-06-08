@@ -21,8 +21,33 @@ export default function RegisterPage() {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
+  const validateForm = () => {
+    const nextErrors = {};
+
+    if (!form.name.trim()) {
+      nextErrors.name = "Name is required";
+    }
+
+    if (!form.email.trim()) {
+      nextErrors.email = "Email is required";
+    }
+
+    if (!form.password) {
+      nextErrors.password = "Password is required";
+    } else if (form.password.length < 6) {
+      nextErrors.password = "Password must be at least 6 characters";
+    }
+
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
     setErrors({});
     try {

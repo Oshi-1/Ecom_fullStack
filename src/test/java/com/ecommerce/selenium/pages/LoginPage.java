@@ -19,6 +19,7 @@ public class LoginPage {
     private final By signInButton = By.xpath("//button[normalize-space()='Sign in' or normalize-space()='Signing in...']");
     private final By createAccountLink = By.linkText("Create account");
     private final By forgotPasswordLink = By.linkText("Forgot password?");
+    private final By notificationCloseButton = By.cssSelector("[data-testid='app-notification'] button[aria-label='Close notification']");
     private final By errorBanner = By.cssSelector("p[class*='errorBanner']");
     private final By emailError = By.xpath("//input[@id='login-email']/following-sibling::span");
     private final By passwordError = By.xpath("//input[@id='login-password']/ancestor::div[contains(@class,'field')]/span");
@@ -55,7 +56,8 @@ public class LoginPage {
     }
 
     public LoginPage submit() {
-        driver.findElement(signInButton).click();
+        closeNotificationIfVisible();
+        wait.until(ExpectedConditions.elementToBeClickable(signInButton)).click();
         return this;
     }
 
@@ -113,5 +115,12 @@ public class LoginPage {
         WebElement element = driver.findElement(locator);
         element.clear();
         element.sendKeys(value);
+    }
+
+    private void closeNotificationIfVisible() {
+        driver.findElements(notificationCloseButton).stream()
+                .filter(WebElement::isDisplayed)
+                .findFirst()
+                .ifPresent(WebElement::click);
     }
 }

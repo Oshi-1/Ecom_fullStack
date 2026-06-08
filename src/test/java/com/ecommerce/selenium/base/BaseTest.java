@@ -22,6 +22,8 @@ public abstract class BaseTest {
     private static Process backendProcess;
     private static final String FRONTEND_HOST = "localhost";
     private static final int FRONTEND_PORT = 5173;
+    private static final String BACKEND_HOST = "localhost";
+    private static final int BACKEND_PORT = 8081;
 
     protected WebDriver driver;
     protected WebDriverWait wait;
@@ -87,8 +89,18 @@ public abstract class BaseTest {
         }
     }
 
-    protected void startBackendIfNeeded() {
+    protected synchronized void startBackendIfNeeded() {
         if (isAvailable(backendApiUrl + "/products")) {
+            return;
+        }
+
+        if (backendProcess != null && backendProcess.isAlive()) {
+            waitUntilBackendStarts();
+            return;
+        }
+
+        if (isPortOpen(BACKEND_HOST, BACKEND_PORT)) {
+            waitUntilBackendStarts();
             return;
         }
 
@@ -97,7 +109,8 @@ public abstract class BaseTest {
             File logFile = projectFolder.resolve("target").resolve("selenium-backend.log").toFile();
             logFile.getParentFile().mkdirs();
 
-            ProcessBuilder builder = new ProcessBuilder("cmd", "/c", "mvnw.cmd spring-boot:run");
+            ProcessBuilder builder = new ProcessBuilder(
+                    "cmd", "/c", "mvnw.cmd spring-boot:run -Dspring-boot.run.jvmArguments=-Dspring.devtools.restart.enabled=false");
             builder.directory(projectFolder.toFile());
             builder.environment().put("JAVA_HOME", System.getProperty("java.home"));
             builder.redirectErrorStream(true);
@@ -159,8 +172,8 @@ public abstract class BaseTest {
     private boolean isAvailable(String url) {
         try {
             HttpURLConnection connection = (HttpURLConnection) URI.create(url).toURL().openConnection();
-            connection.setConnectTimeout(1500);
-            connection.setReadTimeout(1500);
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
             connection.setRequestMethod("GET");
             int responseCode = connection.getResponseCode();
             connection.disconnect();
