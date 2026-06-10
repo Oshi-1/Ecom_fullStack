@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -48,6 +50,10 @@ public abstract class BaseTest {
     }
 
     private void launchChrome() {
+        Logger.getLogger("org.openqa.selenium").setLevel(Level.SEVERE);
+        Logger.getLogger("org.openqa.selenium.devtools.CdpVersionFinder").setLevel(Level.SEVERE);
+        Logger.getLogger("org.openqa.selenium.chromium.ChromiumDriver").setLevel(Level.SEVERE);
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
         options.addArguments("--disable-notifications");
@@ -81,12 +87,8 @@ public abstract class BaseTest {
 
     @AfterSuite(alwaysRun = true)
     public void stopStartedServers() {
-        if (frontendProcess != null && frontendProcess.isAlive()) {
-            frontendProcess.destroy();
-        }
-        if (backendProcess != null && backendProcess.isAlive()) {
-            backendProcess.destroy();
-        }
+        stopProcessTree(frontendProcess);
+        stopProcessTree(backendProcess);
     }
 
     protected synchronized void startBackendIfNeeded() {
@@ -194,6 +196,28 @@ public abstract class BaseTest {
             return true;
         } catch (Exception ex) {
             return false;
+        }
+    }
+
+    private void stopProcessTree(Process process) {
+        if (process == null) {
+            return;
+        }
+
+        process.descendants()
+                .sorted((left, right) -> Long.compare(right.pid(), left.pid()))
+                .forEach(this::stopProcess);
+        stopProcess(process.toHandle());
+    }
+
+    private void stopProcess(ProcessHandle process) {
+        if (!process.isAlive()) {
+            return;
+        }
+
+        process.destroy();
+        if (process.isAlive()) {
+            process.destroyForcibly();
         }
     }
 
