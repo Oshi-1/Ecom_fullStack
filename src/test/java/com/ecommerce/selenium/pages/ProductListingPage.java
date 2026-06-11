@@ -2,7 +2,9 @@ package com.ecommerce.selenium.pages;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.openqa.selenium.By;
@@ -106,6 +108,32 @@ public class ProductListingPage {
                 .collect(Collectors.toSet());
     }
 
+    public Map<String, String> displayedProductNamePrices() {
+        Map<String, String> productNamePrices = new LinkedHashMap<>();
+
+        for (WebElement card : driver.findElements(productCards)) {
+            productNamePrices.put(
+                    card.findElement(productName).getText().trim(),
+                    normalizePriceText(card.findElement(productPrice).getText()));
+        }
+
+        return productNamePrices;
+    }
+
+    public String firstProductName() {
+        return firstProductCard().findElement(productName).getText().trim();
+    }
+
+    public String firstProductPrice() {
+        return normalizePriceText(firstProductCard().findElement(productPrice).getText());
+    }
+
+    public void openFirstProductDetails() {
+        WebElement firstCard = firstProductCard();
+        scrollIntoView(firstCard);
+        wait.until(ExpectedConditions.elementToBeClickable(firstCard)).click();
+    }
+
     public List<String> scrollThroughAndValidateAllProducts() {
         List<WebElement> cards = driver.findElements(productCards);
         List<String> validationErrors = new ArrayList<>();
@@ -145,6 +173,11 @@ public class ProductListingPage {
         return driver.findElements(productCards).stream()
                 .filter(WebElement::isDisplayed)
                 .toList();
+    }
+
+    private WebElement firstProductCard() {
+        wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(productCards, 0));
+        return driver.findElements(productCards).get(0);
     }
 
     private boolean allProductsHaveVisibleElement(By locator, boolean requireText) {
@@ -190,5 +223,9 @@ public class ProductListingPage {
 
     private void waitForLoadingToFinish() {
         wait.until(ExpectedConditions.invisibilityOfElementLocated(loadingMessage));
+    }
+
+    private String normalizePriceText(String priceText) {
+        return priceText.replace("Rs.", "").trim();
     }
 }

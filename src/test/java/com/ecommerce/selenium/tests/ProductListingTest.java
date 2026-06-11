@@ -2,15 +2,18 @@ package com.ecommerce.selenium.tests;
 
 import com.ecommerce.dto.ProductResponse;
 import com.ecommerce.selenium.base.BaseTest;
+import com.ecommerce.selenium.pages.ProductDetailsPage;
 import com.ecommerce.selenium.pages.ProductListingPage;
 import com.ecommerce.selenium.utils.LoginTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.testng.Assert;
@@ -50,6 +53,21 @@ public class ProductListingTest extends BaseTest {
         verify(productsPage.allProductPricesVisible(), "Har product ka Price visible hai");
         verify(productsPage.hiddenProductCount() == 0, "Koi hidden product nahi mila");
         verify(noBackendProductIsMissing(productsPage), "Koi missing product nahi mila");
+
+        verify(productNamesAndPricesMatchBackend(productsPage),
+                "T082: Product listing par product name aur price backend data se match kar rahe hain");
+
+        String selectedProductName = productsPage.firstProductName();
+        String selectedProductPrice = productsPage.firstProductPrice();
+        productsPage.openFirstProductDetails();
+
+        ProductDetailsPage detailsPage = new ProductDetailsPage(driver, wait).waitUntilLoaded();
+        verify(detailsPage.isOpen(), "T083: Product card par click karne ke baad product details page open ho gaya");
+        verify(detailsPage.displayedProductName().equals(selectedProductName),
+                "T083: Details page par selected product ka name sahi display ho raha hai");
+        verify(priceValue(detailsPage.displayedProductPrice()).compareTo(priceValue(selectedProductPrice)) == 0,
+                "T083: Details page par selected product ka price sahi display ho raha hai");
+
         log("===== Product Listing complete execution successfully finished =====");
     }
 
@@ -61,6 +79,22 @@ public class ProductListingTest extends BaseTest {
 
         return productsPage.totalProductCount() == expectedProducts.length
                 && productsPage.displayedProductNames().equals(expectedNames);
+    }
+
+    private boolean productNamesAndPricesMatchBackend(ProductListingPage productsPage) throws Exception {
+        Map<String, BigDecimal> expectedProductNamePrices = Arrays.stream(fetchActiveProducts())
+                .collect(Collectors.toMap(
+                        ProductResponse::getName,
+                        product -> product.getPrice().stripTrailingZeros()));
+
+        Map<String, BigDecimal> actualProductNamePrices = productsPage.displayedProductNamePrices()
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> priceValue(entry.getValue())));
+
+        return actualProductNamePrices.equals(expectedProductNamePrices);
     }
 
     private ProductResponse[] fetchActiveProducts() throws Exception {
@@ -84,6 +118,10 @@ public class ProductListingTest extends BaseTest {
     private void verify(boolean condition, String successMessage) {
         Assert.assertTrue(condition, successMessage + " - FAILED");
         log(successMessage);
+    }
+
+    private BigDecimal priceValue(String priceText) {
+        return new BigDecimal(priceText.trim()).stripTrailingZeros();
     }
 
     private void log(String message) {
