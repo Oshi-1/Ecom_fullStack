@@ -35,6 +35,9 @@ public class Product {
 	@Column(nullable = false)
 	private String category;
 
+	@Column
+	private String brand;
+
 	private String imageUrl;
 
 	// true = visible in store, false = hidden (admin can deactivate)

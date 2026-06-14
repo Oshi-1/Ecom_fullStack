@@ -12,6 +12,7 @@ public class ProductResponse {
 	private BigDecimal price;
 	private Integer stock;
 	private String category;
+	private String brand;
 	private String imageUrl;
 	private Boolean active;
 	private LocalDateTime createdAt;

@@ -26,6 +26,7 @@ public class ProductServiceImpl implements ProductService {
 		response.setPrice(product.getPrice());
 		response.setStock(product.getStock());
 		response.setCategory(product.getCategory());
+		response.setBrand(product.getBrand());
 		response.setImageUrl(product.getImageUrl());
 		response.setActive(product.getActive());
 		response.setCreatedAt(product.getCreatedAt());
@@ -41,6 +42,7 @@ public class ProductServiceImpl implements ProductService {
 		product.setPrice(request.getPrice());
 		product.setStock(request.getStock());
 		product.setCategory(request.getCategory());
+		product.setBrand(request.getBrand());
 		product.setImageUrl(request.getImageUrl());
 		product.setActive(true);
 
@@ -62,6 +64,7 @@ public class ProductServiceImpl implements ProductService {
 		product.setPrice(request.getPrice());
 		product.setStock(request.getStock());
 		product.setCategory(request.getCategory());
+		product.setBrand(request.getBrand());
 		product.setImageUrl(request.getImageUrl());
 
 		Product saved = productRepository.save(product);

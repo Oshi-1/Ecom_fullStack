@@ -10,6 +10,7 @@ const initialForm = {
   price: "",
   stock: "",
   category: "",
+  brand: "",
   imageUrl: "",
 };
 
@@ -59,6 +60,7 @@ export default function AddProductPage() {
             price: res.data.price ?? "",
             stock: res.data.stock ?? "",
             category: res.data.category || "",
+            brand: res.data.brand || "",
             imageUrl: res.data.imageUrl || "",
           });
         }
@@ -131,6 +133,7 @@ export default function AddProductPage() {
       <form className={styles.productForm} onSubmit={handleSubmit}>
         <input name="name" placeholder="Product name" value={form.name} onChange={handleChange} required />
         <input name="category" placeholder="Category" value={form.category} onChange={handleChange} required />
+        <input name="brand" placeholder="Brand" value={form.brand} onChange={handleChange} required />
         <input name="price" type="number" min="1" step="0.01" placeholder="Price" value={form.price} onChange={handleChange} required />
         <input name="stock" type="number" min="0" placeholder="Stock" value={form.stock} onChange={handleChange} required />
         <input name="imageUrl" placeholder="Image URL" value={form.imageUrl} onChange={handleChange} />

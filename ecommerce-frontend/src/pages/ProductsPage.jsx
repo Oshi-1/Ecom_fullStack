@@ -15,6 +15,10 @@ export default function ProductsPage() {
   const [toast, setToast] = useState(null);
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
+  const [brand, setBrand] = useState("");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const { user } = useAuth();
   const { showSuccess, showError } = useNotification();
   const location = useLocation();
@@ -77,14 +81,32 @@ export default function ProductsPage() {
     };
   }, []);
 
+  const productBrand = (product) => product.brand || product.name.split(" ")[0] || "Generic";
+  const pageSize = 6;
+
+  const applyClientFilters = (sourceProducts, nextFilters = {}) => {
+    const selectedBrand = nextFilters.brand ?? brand;
+    const selectedMinPrice = nextFilters.minPrice ?? minPrice;
+    const selectedMaxPrice = nextFilters.maxPrice ?? maxPrice;
+
+    return sourceProducts.filter((product) => {
+      const productPrice = Number(product.price);
+      const matchesBrand = !selectedBrand || productBrand(product) === selectedBrand;
+      const matchesMinPrice = !selectedMinPrice || productPrice >= Number(selectedMinPrice);
+      const matchesMaxPrice = !selectedMaxPrice || productPrice <= Number(selectedMaxPrice);
+      return matchesBrand && matchesMinPrice && matchesMaxPrice;
+    });
+  };
+
   const handleSearch = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError("");
+    setCurrentPage(1);
 
     try {
       const res = await searchProducts(keyword, category);
-      setProducts(res.data);
+      setProducts(applyClientFilters(res.data));
     } catch {
       setError("Search failed");
       showError("Search failed. Please try again.");
@@ -96,22 +118,47 @@ export default function ProductsPage() {
   const handleReset = () => {
     setKeyword("");
     setCategory("");
+    setBrand("");
+    setMinPrice("");
+    setMaxPrice("");
+    setCurrentPage(1);
     setProducts(allProducts);
     setToast(null);
   };
 
-  const handleCategoryChange = (nextCategory) => {
-    setCategory(nextCategory);
-    setToast(null);
-
-    const normalizedKeyword = keyword.trim().toLowerCase();
-    const filteredProducts = allProducts.filter((product) => {
+  const updateFilters = (nextFilters) => {
+    const nextKeyword = nextFilters.keyword ?? keyword;
+    const nextCategory = nextFilters.category ?? category;
+    const normalizedKeyword = nextKeyword.trim().toLowerCase();
+    const baseProducts = allProducts.filter((product) => {
       const matchesCategory = !nextCategory || product.category === nextCategory;
       const matchesKeyword = !normalizedKeyword || product.name.toLowerCase().includes(normalizedKeyword);
       return matchesCategory && matchesKeyword;
     });
 
-    setProducts(filteredProducts);
+    setCurrentPage(1);
+    setProducts(applyClientFilters(baseProducts, nextFilters));
+    setToast(null);
+  };
+
+  const handleCategoryChange = (nextCategory) => {
+    setCategory(nextCategory);
+    updateFilters({ category: nextCategory });
+  };
+
+  const handleBrandChange = (nextBrand) => {
+    setBrand(nextBrand);
+    updateFilters({ brand: nextBrand });
+  };
+
+  const handleMinPriceChange = (nextMinPrice) => {
+    setMinPrice(nextMinPrice);
+    updateFilters({ minPrice: nextMinPrice });
+  };
+
+  const handleMaxPriceChange = (nextMaxPrice) => {
+    setMaxPrice(nextMaxPrice);
+    updateFilters({ maxPrice: nextMaxPrice });
   };
 
   const handleAddToCart = async (event, product) => {
@@ -167,6 +214,10 @@ export default function ProductsPage() {
   };
 
   const categories = [...new Set(allProducts.map((p) => p.category).filter(Boolean))];
+  const brands = [...new Set(allProducts.map((p) => productBrand(p)).filter(Boolean))];
+  const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
+  const pageStart = (currentPage - 1) * pageSize;
+  const paginatedProducts = products.slice(pageStart, pageStart + pageSize);
 
   return (
     <div className={styles.page}>
@@ -236,11 +287,15 @@ export default function ProductsPage() {
           type="text"
           placeholder="Search anything..."
           value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
+          onChange={(event) => {
+            setKeyword(event.target.value);
+            updateFilters({ keyword: event.target.value });
+          }}
           className={styles.searchInput}
         />
 
         <select
+          aria-label="Category"
           value={category}
           onChange={(event) => handleCategoryChange(event.target.value)}
           className={styles.select}
@@ -252,6 +307,42 @@ export default function ProductsPage() {
             </option>
           ))}
         </select>
+
+        <select
+          aria-label="Brand"
+          value={brand}
+          onChange={(event) => handleBrandChange(event.target.value)}
+          className={styles.select}
+        >
+          <option value="">All Brands</option>
+          {brands.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+
+        <input
+          aria-label="Minimum price"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="Min price"
+          value={minPrice}
+          onChange={(event) => handleMinPriceChange(event.target.value)}
+          className={styles.searchInput}
+        />
+
+        <input
+          aria-label="Maximum price"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="Max price"
+          value={maxPrice}
+          onChange={(event) => handleMaxPriceChange(event.target.value)}
+          className={styles.searchInput}
+        />
 
         <button type="submit" className={styles.searchBtn}>
           Search
@@ -269,7 +360,7 @@ export default function ProductsPage() {
 
       {!loading && !error && (
         <div className={styles.grid}>
-          {products.map((product) => (
+          {paginatedProducts.map((product) => (
             <article
               key={product.productId}
               role="button"
@@ -294,6 +385,7 @@ export default function ProductsPage() {
               <div className={styles.cardBody}>
                 <h3>{product.name}</h3>
                 <p>{product.category}</p>
+                <p data-testid="product-brand">{productBrand(product)}</p>
 
                 <div className={styles.cardFooter}>
                   <span>Rs. {product.price}</span>
@@ -333,6 +425,20 @@ export default function ProductsPage() {
             </article>
           ))}
         </div>
+      )}
+
+      {!loading && !error && products.length > pageSize && (
+        <nav className={styles.pagination} aria-label="Product pagination">
+          <button type="button" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage === 1}>
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button type="button" onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))} disabled={currentPage === totalPages}>
+            Next
+          </button>
+        </nav>
       )}
 
       {!isAdmin && !loading && !error && products.length > 0 && (

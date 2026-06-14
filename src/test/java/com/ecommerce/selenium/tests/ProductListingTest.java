@@ -13,6 +13,7 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -57,6 +58,43 @@ public class ProductListingTest extends BaseTest {
         verify(productNamesAndPricesMatchBackend(productsPage),
                 "T082: Product listing par product name aur price backend data se match kar rahe hain");
 
+        ProductResponse[] backendProducts = fetchActiveProducts();
+        String searchKeyword = "Headphones";
+        Set<String> expectedSearchResults = expectedNamesForKeyword(backendProducts, searchKeyword);
+        productsPage.searchFor(searchKeyword).waitUntilProductNamesAre(expectedSearchResults);
+        verify(!expectedSearchResults.isEmpty(), "T084: Search test ke liye expected products backend se mile");
+        verify(productsPage.allProductsContainKeyword(searchKeyword),
+                "T084: Search functionality keyword '" + searchKeyword + "' ke liye sahi products dikha rahi hai");
+        verify(productsPage.displayedProductNames().equals(expectedSearchResults),
+                "T084: Search results backend search expectation se match kar rahe hain");
+
+        productsPage.resetFilters();
+        verify(productsPage.allProductNamesAcrossPages().size() == backendProducts.length,
+                "T084: Reset ke baad complete product list wapas aa gayi");
+
+        String category = "Electronics";
+        Set<String> expectedCategoryResults = expectedNamesForCategory(backendProducts, category);
+        productsPage.filterByCategory(category).waitUntilProductNamesAre(expectedCategoryResults);
+        verify(!expectedCategoryResults.isEmpty(), "T085: Filter test ke liye expected category products backend se mile");
+        verify(productsPage.allProductsAreInCategory(category),
+                "T085: Category filtering '" + category + "' ke liye sirf matching products dikha rahi hai");
+        verify(productsPage.displayedProductNames().equals(expectedCategoryResults),
+                "T085: Filtered products backend category expectation se match kar rahe hain");
+
+        String impossibleKeyword = "no-product-" + Instant.now().toEpochMilli();
+        productsPage.searchFor(impossibleKeyword);
+        verify(productsPage.totalProductCount() == 0 && productsPage.isEmptyMessageDisplayed(),
+                "T086: Dynamic empty state handle ho raha hai jab search result nahi milta");
+        productsPage.resetFilters();
+        verify(productsPage.allProductNamesAcrossPages().equals(expectedNamesForAll(backendProducts)),
+                "T086: Dynamic reset ke baad complete product list wapas aa gayi");
+        verify(productsPage.searchKeywordValue().isEmpty() && productsPage.selectedCategory().isEmpty(),
+                "T086: Dynamic reset ke baad search aur filter controls clean ho gaye");
+        verify(productsPage.allListedProductsVisible(),
+                "T086: Dynamic reload ke baad product cards stale/hide nahi huye");
+        verify(productsPage.availableCategories().contains(category),
+                "T087: Reusable ProductListingPage component category options read kar raha hai");
+
         String selectedProductName = productsPage.firstProductName();
         String selectedProductPrice = productsPage.firstProductPrice();
         productsPage.openFirstProductDetails();
@@ -77,8 +115,8 @@ public class ProductListingTest extends BaseTest {
                 .map(ProductResponse::getName)
                 .collect(Collectors.toSet());
 
-        return productsPage.totalProductCount() == expectedProducts.length
-                && productsPage.displayedProductNames().equals(expectedNames);
+        return productsPage.allProductNamesAcrossPages().size() == expectedProducts.length
+                && productsPage.allProductNamesAcrossPages().equals(expectedNames);
     }
 
     private boolean productNamesAndPricesMatchBackend(ProductListingPage productsPage) throws Exception {
@@ -87,7 +125,7 @@ public class ProductListingTest extends BaseTest {
                         ProductResponse::getName,
                         product -> product.getPrice().stripTrailingZeros()));
 
-        Map<String, BigDecimal> actualProductNamePrices = productsPage.displayedProductNamePrices()
+        Map<String, BigDecimal> actualProductNamePrices = productsPage.allProductNamePricesAcrossPages()
                 .entrySet()
                 .stream()
                 .collect(Collectors.toMap(
@@ -113,6 +151,27 @@ public class ProductListingTest extends BaseTest {
         } finally {
             connection.disconnect();
         }
+    }
+
+    private Set<String> expectedNamesForAll(ProductResponse[] products) {
+        return Arrays.stream(products)
+                .map(ProductResponse::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> expectedNamesForKeyword(ProductResponse[] products, String keyword) {
+        String normalizedKeyword = keyword.toLowerCase(Locale.ROOT);
+        return Arrays.stream(products)
+                .filter(product -> product.getName().toLowerCase(Locale.ROOT).contains(normalizedKeyword))
+                .map(ProductResponse::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> expectedNamesForCategory(ProductResponse[] products, String category) {
+        return Arrays.stream(products)
+                .filter(product -> product.getCategory().equalsIgnoreCase(category))
+                .map(ProductResponse::getName)
+                .collect(Collectors.toSet());
     }
 
     private void verify(boolean condition, String successMessage) {
