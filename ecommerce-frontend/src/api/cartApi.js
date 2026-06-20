@@ -8,6 +8,9 @@ export const addToCart = (productId, quantity = 1) =>
 export const updateCartItem = (cartItemId, quantity) =>
   axiosInstance.put(`/cart/items/${cartItemId}`, { quantity });
 
+export const updateCartItemByProduct = (productId, quantity) =>
+  axiosInstance.put(`/cart/items/product/${productId}`, { quantity });
+
 export const removeCartItem = (cartItemId) =>
   axiosInstance.delete(`/cart/items/${cartItemId}`);
 

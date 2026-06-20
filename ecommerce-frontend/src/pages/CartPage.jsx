@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearCart, getCart, removeCartItem, updateCartItem } from "../api/cartApi";
+import { clearCart, getCart, removeCartItem, updateCartItem, updateCartItemByProduct } from "../api/cartApi";
 import { useAuth } from "../context/useAuth";
 import { useNotification } from "../context/useNotification";
 import { handleProductImageError, productImageFallback } from "../utils/productImage";
@@ -13,7 +13,18 @@ export default function CartPage() {
   const [cart, setCart] = useState({ items: [], totalItems: 0, totalAmount: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingItemId, setUpdatingItemId] = useState(null);
   const isAdmin = user?.role === "ADMIN";
+
+  const toNumber = (value) => Number(value || 0);
+
+  const getLineTotal = (item) => toNumber(item.price) * toNumber(item.quantity);
+
+  const displayCart = {
+    ...cart,
+    totalItems: cart.items.reduce((total, item) => total + toNumber(item.quantity), 0),
+    totalAmount: cart.items.reduce((total, item) => total + getLineTotal(item), 0),
+  };
 
   const loadCart = async () => {
     setError("");
@@ -65,23 +76,56 @@ export default function CartPage() {
     return () => {
       active = false;
     };
-  }, [isAdmin, navigate]);
+  }, [isAdmin, navigate, showError]);
 
   const handleQuantityChange = async (item, quantity) => {
     const nextQuantity = Number(quantity);
 
-    if (nextQuantity < 1 || nextQuantity > item.stock) {
+    if (Number.isNaN(nextQuantity) || nextQuantity < 1 || nextQuantity > item.stock) {
       return;
     }
 
+    const cartItemId = item.cartItemId ?? item.id;
+    const previousCart = cart;
+    const optimisticCart = {
+      ...cart,
+      items: cart.items.map((cartItem) =>
+        (cartItem.cartItemId ?? cartItem.id ?? cartItem.productId) ===
+        (cartItemId ?? item.productId)
+          ? {
+              ...cartItem,
+              quantity: nextQuantity,
+              subtotal: toNumber(cartItem.price) * nextQuantity,
+            }
+          : cartItem
+      ),
+    };
+
     try {
-      const res = await updateCartItem(item.cartItemId, nextQuantity);
-      setCart(res.data);
+      setError("");
+      setUpdatingItemId(cartItemId ?? item.productId);
+      setCart(optimisticCart);
+
+      const res = cartItemId
+        ? await updateCartItem(cartItemId, nextQuantity)
+        : await updateCartItemByProduct(item.productId, nextQuantity);
+
+      if (res.data?.items) {
+        setCart(res.data);
+      } else {
+        await loadCart();
+      }
       showSuccess("Cart quantity updated.");
     } catch (err) {
-      const message = err.response?.data?.error || "Quantity could not be updated";
+      setCart(previousCart);
+      const message =
+        err.response?.data?.error ||
+        err.response?.data?.quantity ||
+        "Quantity could not be updated";
       setError(message);
       showError(message);
+    } finally {
+      setUpdatingItemId(null);
     }
   };
 
@@ -124,7 +168,7 @@ export default function CartPage() {
       {loading && <p className={styles.message}>Loading...</p>}
       {error && <p className={styles.error}>{error}</p>}
 
-      {!loading && cart.items.length === 0 && (
+      {!loading && displayCart.items.length === 0 && (
         <div className={styles.emptyState}>
           <p>Your cart is empty</p>
           <button type="button" className={styles.searchBtn} onClick={() => navigate("/products")}>
@@ -133,49 +177,72 @@ export default function CartPage() {
         </div>
       )}
 
-      {!loading && cart.items.length > 0 && (
+      {!loading && displayCart.items.length > 0 && (
         <div className={styles.cartLayout}>
           <div className={styles.cartItems}>
-            {cart.items.map((item) => (
-              <article className={styles.cartItem} key={item.cartItemId}>
-                <img
-                  src={item.imageUrl || productImageFallback(item.name)}
-                  alt={item.name}
-                  onError={(event) => handleProductImageError(event, item.name)}
-                />
+            {displayCart.items.map((item) => {
+              const itemId = item.cartItemId ?? item.id ?? item.productId;
+              const isUpdating = updatingItemId === itemId;
 
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>{item.category}</p>
-                  <strong>Rs. {item.price}</strong>
-                </div>
+              return (
+                <article className={styles.cartItem} key={itemId} data-testid="cart-item">
+                  <img
+                    src={item.imageUrl || productImageFallback(item.name)}
+                    alt={item.name}
+                    onError={(event) => handleProductImageError(event, item.name)}
+                  />
 
-                <input
-                  type="number"
-                  min="1"
-                  max={item.stock}
-                  value={item.quantity}
-                  onChange={(event) => handleQuantityChange(item, event.target.value)}
-                />
+                  <div>
+                    <h3>{item.name}</h3>
+                    <p>{item.category}</p>
+                    <strong data-testid="cart-item-unit-price">Rs. {item.price}</strong>
+                  </div>
 
-                <strong>Rs. {item.subtotal}</strong>
+                  <div
+                    className={styles.quantityStepper}
+                    aria-label={`Quantity for ${item.name}`}
+                    data-testid="cart-quantity-stepper"
+                  >
+                    <button
+                      type="button"
+                      aria-label={`Decrease ${item.name} quantity`}
+                      data-testid="cart-quantity-decrease"
+                      disabled={isUpdating || item.quantity <= 1}
+                      onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                    >
+                      -
+                    </button>
+                    <span>{item.quantity}</span>
+                    <button
+                      type="button"
+                      aria-label={`Increase ${item.name} quantity`}
+                      data-testid="cart-quantity-increase"
+                      disabled={isUpdating || item.quantity >= item.stock}
+                      onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
 
-                <button type="button" onClick={() => handleRemove(item.cartItemId)}>
-                  Remove
-                </button>
-              </article>
-            ))}
+                  <strong data-testid="cart-item-subtotal">Rs. {getLineTotal(item)}</strong>
+
+                  <button type="button" onClick={() => handleRemove(item.cartItemId ?? item.id)}>
+                    Remove
+                  </button>
+                </article>
+              );
+            })}
           </div>
 
           <aside className={styles.cartSummary}>
             <h2>Summary</h2>
             <p>
               <span>Items</span>
-              <strong>{cart.totalItems}</strong>
+              <strong>{displayCart.totalItems}</strong>
             </p>
             <p>
               <span>Total</span>
-              <strong>Rs. {cart.totalAmount}</strong>
+              <strong>Rs. {displayCart.totalAmount}</strong>
             </p>
             <button type="button" className={styles.searchBtn} onClick={() => navigate("/checkout")}>
               Checkout

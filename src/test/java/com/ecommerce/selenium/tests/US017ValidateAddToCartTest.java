@@ -49,7 +49,113 @@ public class US017ValidateAddToCartTest extends BaseTest {
         verify(cartPage.totalItems() == quantity, "Cart summary item count matched added quantity");
         verify(cartPage.totalAmount().compareTo(selectedProductPrice.multiply(BigDecimal.valueOf(quantity))) == 0,
                 "Cart summary total matched added product subtotal");
+
+        cartPage.increaseQuantityForProduct(selectedProductName);
+        int incrementedQuantity = quantity + 1;
+        verify(cartPage.quantityForProduct(selectedProductName) == incrementedQuantity,
+                "Cart plus button increased product quantity");
+        verify(cartPage.subtotalForProduct(selectedProductName)
+                        .compareTo(selectedProductPrice.multiply(BigDecimal.valueOf(incrementedQuantity))) == 0,
+                "Cart subtotal updated after plus button");
+        verify(cartPage.totalItems() == incrementedQuantity, "Cart summary item count updated after plus button");
+        verify(cartPage.totalAmount().compareTo(selectedProductPrice.multiply(BigDecimal.valueOf(incrementedQuantity))) == 0,
+                "Cart summary total updated after plus button");
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No quantity update error displayed after plus button");
+
+        cartPage.decreaseQuantityForProduct(selectedProductName);
+        verify(cartPage.quantityForProduct(selectedProductName) == quantity,
+                "Cart minus button decreased product quantity");
+        verify(cartPage.subtotalForProduct(selectedProductName)
+                        .compareTo(selectedProductPrice.multiply(BigDecimal.valueOf(quantity))) == 0,
+                "Cart subtotal updated after minus button");
+        verify(cartPage.totalItems() == quantity, "Cart summary item count updated after minus button");
+        verify(cartPage.totalAmount().compareTo(selectedProductPrice.multiply(BigDecimal.valueOf(quantity))) == 0,
+                "Cart summary total updated after minus button");
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No quantity update error displayed after minus button");
         log("===== T089 Validate product addition passed =====");
+    }
+
+    @Test(priority = 3)
+    public void T090_validateCartPlusMinusAutoQuantityAndPriceUpdate() {
+        log("===== T090 Cart plus/minus quantity and price sync started =====");
+        ProductDetailsPage detailsPage = openFirstProductDetailsAsNewUser();
+
+        String selectedProductName = detailsPage.displayedProductName();
+        BigDecimal selectedProductPrice = priceValue(detailsPage.displayedProductPrice());
+        int initialQuantity = 3;
+
+        detailsPage.setQuantity(initialQuantity).addToCart();
+        CartPage cartPage = detailsPage.viewCart();
+
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, initialQuantity,
+                "Initial cart quantity and price matched");
+
+        int incrementedQuantity = initialQuantity + 1;
+        cartPage.increaseQuantityForProduct(selectedProductName)
+                .waitForSubtotal(selectedProductName, selectedProductPrice.multiply(BigDecimal.valueOf(incrementedQuantity)))
+                .waitForSummary(incrementedQuantity, selectedProductPrice.multiply(BigDecimal.valueOf(incrementedQuantity)));
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, incrementedQuantity,
+                "Plus button auto incremented quantity and price");
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No error displayed after plus button automation");
+
+        int decrementedQuantity = initialQuantity;
+        cartPage.decreaseQuantityForProduct(selectedProductName)
+                .waitForSubtotal(selectedProductName, selectedProductPrice.multiply(BigDecimal.valueOf(decrementedQuantity)))
+                .waitForSummary(decrementedQuantity, selectedProductPrice.multiply(BigDecimal.valueOf(decrementedQuantity)));
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, decrementedQuantity,
+                "Minus button auto decremented quantity and price");
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No error displayed after minus button automation");
+
+        log("===== T090 Cart plus/minus quantity and price sync passed =====");
+    }
+
+    @Test(priority = 4)
+    public void T091_validateCartMinusButtonDisabledAtMinimumQuantity() {
+        log("===== T091 Cart minus button minimum quantity validation started =====");
+        ProductDetailsPage detailsPage = openFirstProductDetailsAsNewUser();
+
+        String selectedProductName = detailsPage.displayedProductName();
+        BigDecimal selectedProductPrice = priceValue(detailsPage.displayedProductPrice());
+
+        detailsPage.setQuantity(1).addToCart();
+        CartPage cartPage = detailsPage.viewCart();
+
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 1,
+                "Cart opened with minimum quantity one");
+        verify(cartPage.isDecreaseDisabledForProduct(selectedProductName),
+                "Minus button is disabled when product quantity is one");
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No quantity update error displayed at minimum quantity");
+        log("===== T091 Cart minus button minimum quantity validation passed =====");
+    }
+
+    @Test(priority = 5)
+    public void T092_automateQuantityIncrementAndDecrementUsingPlusMinusButtons() {
+        log("===== T092 Automated plus/minus quantity button demo started =====");
+        ProductDetailsPage detailsPage = openFirstProductDetailsAsNewUser();
+
+        String selectedProductName = detailsPage.displayedProductName();
+        BigDecimal selectedProductPrice = priceValue(detailsPage.displayedProductPrice());
+
+        detailsPage.setQuantity(1).addToCart();
+        CartPage cartPage = detailsPage.viewCart();
+
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 1,
+                "Automation opened cart with quantity one");
+
+        cartPage.increaseQuantityForProduct(selectedProductName);
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 2,
+                "Selenium clicked plus button first time and quantity became two");
+
+        cartPage.increaseQuantityForProduct(selectedProductName);
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 3,
+                "Selenium clicked plus button second time and quantity became three");
+
+        cartPage.decreaseQuantityForProduct(selectedProductName);
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 2,
+                "Selenium clicked minus button and quantity became two");
+
+        verify(!cartPage.quantityUpdateErrorDisplayed(), "No quantity update error displayed during plus/minus demo");
+        log("===== T092 Automated plus/minus quantity button demo passed =====");
     }
 
     private ProductDetailsPage openFirstProductDetailsAsNewUser() {
@@ -65,6 +171,17 @@ public class US017ValidateAddToCartTest extends BaseTest {
 
     private BigDecimal priceValue(String priceText) {
         return new BigDecimal(priceText.trim()).stripTrailingZeros();
+    }
+
+    private void verifyCartTotals(CartPage cartPage, String productName, BigDecimal unitPrice, int quantity,
+            String message) {
+        BigDecimal expectedAmount = unitPrice.multiply(BigDecimal.valueOf(quantity));
+
+        verify(cartPage.quantityForProduct(productName) == quantity, message + " - quantity");
+        verify(cartPage.subtotalForProduct(productName).compareTo(expectedAmount) == 0,
+                message + " - line subtotal");
+        verify(cartPage.totalItems() == quantity, message + " - summary items");
+        verify(cartPage.totalAmount().compareTo(expectedAmount) == 0, message + " - summary total");
     }
 
     private void verify(boolean condition, String successMessage) {

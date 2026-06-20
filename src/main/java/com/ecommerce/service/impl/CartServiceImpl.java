@@ -62,12 +62,16 @@ public class CartServiceImpl implements CartService {
 	public CartResponse updateCartItem(UserDetails userDetails, Long cartItemId, UpdateCartItemRequest request) {
 		User user = getUser(userDetails);
 		CartItem cartItem = getCartItem(cartItemId, user.getUserId());
-		validateStock(cartItem.getProduct(), request.getQuantity());
+		return updateCartItemQuantity(user, cartItem, request.getQuantity());
+	}
 
-		cartItem.setQuantity(request.getQuantity());
-		cartItemRepository.save(cartItem);
-
-		return buildCartResponse(cartItemRepository.findByUser_UserId(user.getUserId()));
+	@Override
+	@Transactional
+	public CartResponse updateCartItemByProduct(UserDetails userDetails, Long productId, UpdateCartItemRequest request) {
+		User user = getUser(userDetails);
+		CartItem cartItem = cartItemRepository.findByUser_UserIdAndProduct_ProductId(user.getUserId(), productId)
+				.orElseThrow(() -> new RuntimeException("Cart item not found"));
+		return updateCartItemQuantity(user, cartItem, request.getQuantity());
 	}
 
 	@Override
@@ -114,6 +118,15 @@ public class CartServiceImpl implements CartService {
 	private CartItem getCartItem(Long cartItemId, Long userId) {
 		return cartItemRepository.findByCartItemIdAndUser_UserId(cartItemId, userId)
 				.orElseThrow(() -> new RuntimeException("Cart item not found"));
+	}
+
+	private CartResponse updateCartItemQuantity(User user, CartItem cartItem, Integer quantity) {
+		validateStock(cartItem.getProduct(), quantity);
+
+		cartItem.setQuantity(quantity);
+		cartItemRepository.save(cartItem);
+
+		return buildCartResponse(cartItemRepository.findByUser_UserId(user.getUserId()));
 	}
 
 	private void validateStock(Product product, Integer quantity) {

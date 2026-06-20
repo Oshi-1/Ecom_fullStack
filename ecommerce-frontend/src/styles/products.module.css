@@ -714,7 +714,7 @@
 
 .cartItem {
   display: grid;
-  grid-template-columns: 100px minmax(180px, 1fr) 86px 120px 92px;
+  grid-template-columns: 100px minmax(180px, 1fr) 132px 120px 92px;
   gap: 16px;
   align-items: center;
   padding: 14px;
@@ -744,6 +744,54 @@
 .cartItem p {
   margin: 0 0 8px;
   color: var(--muted);
+}
+
+.quantityStepper {
+  display: grid;
+  grid-template-columns: 38px minmax(44px, 1fr) 38px;
+  align-items: center;
+  width: 132px;
+  min-height: 42px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.quantityStepper button {
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  min-height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--forest);
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.quantityStepper button:hover:not(:disabled) {
+  background: var(--forest-soft);
+  box-shadow: none;
+}
+
+.quantityStepper button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.quantityStepper span {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  border-inline: 1px solid var(--line);
+  color: var(--ink);
+  font-weight: 950;
 }
 
 .cartSummary p,
