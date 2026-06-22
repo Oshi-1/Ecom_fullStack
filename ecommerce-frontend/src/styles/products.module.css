@@ -945,6 +945,27 @@
   font-size: 24px;
 }
 
+.successPanel .topActions .searchBtn {
+  border-color: var(--forest);
+  background: var(--forest);
+  color: var(--ivory);
+}
+
+.successPanel .topActions .searchBtn:hover {
+  background: #102d26;
+}
+
+.successPanel .topActions button:not(.searchBtn) {
+  border-color: var(--champagne);
+  background: var(--ivory);
+  color: var(--forest);
+}
+
+.successPanel .topActions button:not(.searchBtn):hover {
+  background: #fffaf0;
+  color: #102d26;
+}
+
 .storySection {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(280px, 1.1fr);

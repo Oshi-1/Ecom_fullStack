@@ -19,6 +19,7 @@ public class CartPage {
     private final By emptyCartMessage = By.xpath("//*[normalize-space()='Your cart is empty']");
     private final By summaryItems = By.xpath("//aside//span[normalize-space()='Items']/following-sibling::strong");
     private final By summaryTotal = By.xpath("//aside//span[normalize-space()='Total']/following-sibling::strong");
+    private final By checkoutButton = By.xpath("//aside//button[normalize-space()='Checkout']");
     private final By notification = By.cssSelector("[data-testid='app-notification']");
 
     public CartPage(WebDriver driver, WebDriverWait wait) {
@@ -103,6 +104,11 @@ public class CartPage {
         return normalizePrice(wait.until(ExpectedConditions.visibilityOfElementLocated(summaryTotal)).getText());
     }
 
+    public CheckoutPage checkout() {
+        clickWhenReady(checkoutButton);
+        return new CheckoutPage(driver, wait).waitUntilLoaded();
+    }
+
     private BigDecimal priceAtIndex(String productName, int index) {
         WebElement item = wait.until(ExpectedConditions.visibilityOfElementLocated(itemByProductName(productName)));
         return normalizePrice(item.findElements(By.xpath(".//strong[starts-with(normalize-space(), 'Rs.')]"))
@@ -116,7 +122,11 @@ public class CartPage {
 
     private void clickQuantityButton(String productName, String action) {
         closeNotificationIfVisible();
-        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(quantityButtonByProduct(productName, action)));
+        clickWhenReady(quantityButtonByProduct(productName, action));
+    }
+
+    private void clickWhenReady(By locator) {
+        WebElement button = wait.until(ExpectedConditions.elementToBeClickable(locator));
         ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", button);
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", button);
     }
