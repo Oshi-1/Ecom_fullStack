@@ -38,7 +38,8 @@ public class CheckoutRequest {
 	@Pattern(regexp = "COD|CARD|UPI", message = "Payment method must be COD, CARD, or UPI")
 	private String paymentMethod;
 
-	@Pattern(regexp = "^$|^[0-9+\\-\\s()]{7,20}$", message = "Contact number is invalid")
+	@NotBlank(message = "Contact number is required")
+	@Pattern(regexp = "^[0-9+\\-\\s()]{7,20}$", message = "Contact number is invalid")
 	@Size(max = 20, message = "Contact number must be 20 characters or less")
 	private String contactNumber;
 

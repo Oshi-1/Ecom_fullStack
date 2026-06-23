@@ -45,6 +45,11 @@ public class CartPage {
         return !driver.findElements(itemByProductName(productName)).isEmpty();
     }
 
+    public boolean isEmpty() {
+        return !driver.findElements(emptyCartMessage).isEmpty()
+                && wait.until(ExpectedConditions.visibilityOfElementLocated(emptyCartMessage)).isDisplayed();
+    }
+
     public int quantityForProduct(String productName) {
         WebElement quantity = wait.until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(
                 cartItem(productName), By.xpath(".//div[starts-with(@aria-label, 'Quantity for ')]/span"))).get(0);
@@ -77,6 +82,18 @@ public class CartPage {
                 .anyMatch(element -> element.getText().contains("Quantity could not be updated"));
     }
 
+    public boolean itemRemoveSuccessDisplayed() {
+        return driver.findElements(notification).stream()
+                .filter(WebElement::isDisplayed)
+                .anyMatch(element -> element.getText().contains("Item removed from cart."));
+    }
+
+    public boolean itemRemoveErrorDisplayed() {
+        return driver.findElements(notification).stream()
+                .filter(WebElement::isDisplayed)
+                .anyMatch(element -> element.getText().contains("Item could not be removed"));
+    }
+
     public CartPage waitForSubtotal(String productName, BigDecimal expectedSubtotal) {
         wait.until(driver -> subtotalForProduct(productName).compareTo(expectedSubtotal.stripTrailingZeros()) == 0);
         return this;
@@ -102,6 +119,16 @@ public class CartPage {
 
     public BigDecimal totalAmount() {
         return normalizePrice(wait.until(ExpectedConditions.visibilityOfElementLocated(summaryTotal)).getText());
+    }
+
+    public CartPage removeProduct(String productName) {
+        closeNotificationIfVisible();
+        clickWhenReady(removeButtonByProduct(productName));
+        wait.until(ExpectedConditions.invisibilityOfElementLocated(itemByProductName(productName)));
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(emptyCartMessage),
+                ExpectedConditions.numberOfElementsToBeMoreThan(cartItems, 0)));
+        return this;
     }
 
     public CheckoutPage checkout() {
@@ -138,6 +165,11 @@ public class CartPage {
     private By quantityButtonByProduct(String productName, String action) {
         return By.xpath("//article[.//h3[normalize-space()=" + xpathLiteral(productName) + "]]"
                 + "//button[starts-with(@aria-label, '" + action + "')]");
+    }
+
+    private By removeButtonByProduct(String productName) {
+        return By.xpath("//article[.//h3[normalize-space()=" + xpathLiteral(productName) + "]]"
+                + "//button[normalize-space()='Remove']");
     }
 
     private void waitForQuantityUpdateSuccess() {

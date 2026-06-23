@@ -69,15 +69,8 @@ export default function CheckoutPage() {
   }, []);
 
   const canSubmit = useMemo(() => {
-    return (
-      cart.items.length > 0 &&
-      form.houseNo.trim() &&
-      form.city.trim() &&
-      form.pincode.trim() &&
-      form.state.trim() &&
-      !submitting
-    );
-  }, [cart.items.length, form.city, form.houseNo, form.pincode, form.state, submitting]);
+    return cart.items.length > 0 && !submitting;
+  }, [cart.items.length, submitting]);
 
   const getApiError = (err) => {
     const data = err.response?.data;
@@ -95,24 +88,39 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     const errors = {};
+    let hasBlankRequiredField = false;
 
     if (!form.houseNo.trim()) {
+      hasBlankRequiredField = true;
       errors.houseNo = "House / Flat No. is required";
     }
 
+    if (!form.street.trim()) {
+      hasBlankRequiredField = true;
+      errors.street = "Street / Area is required";
+    }
+
     if (!form.city.trim()) {
+      hasBlankRequiredField = true;
       errors.city = "City is required";
     }
 
-    if (!/^[0-9]{6}$/.test(form.pincode.trim())) {
+    if (!form.pincode.trim()) {
+      hasBlankRequiredField = true;
+      errors.pincode = "Pincode is required";
+    } else if (!/^[0-9]{6}$/.test(form.pincode.trim())) {
       errors.pincode = "Enter a valid 6 digit pincode";
     }
 
     if (!form.state.trim()) {
+      hasBlankRequiredField = true;
       errors.state = "State is required";
     }
 
-    if (form.contactNumber.trim() && !/^[0-9+\-\s()]{7,20}$/.test(form.contactNumber.trim())) {
+    if (!form.contactNumber.trim()) {
+      hasBlankRequiredField = true;
+      errors.contactNumber = "Contact number is required";
+    } else if (!/^[0-9+\-\s()]{7,20}$/.test(form.contactNumber.trim())) {
       errors.contactNumber = "Enter a valid contact number";
     }
 
@@ -122,7 +130,7 @@ export default function CheckoutPage() {
 
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
-      showError(Object.values(errors)[0]);
+      showError(hasBlankRequiredField ? "Required fields cannot be left blank" : Object.values(errors)[0]);
     }
     return Object.keys(errors).length === 0;
   };
@@ -215,7 +223,7 @@ export default function CheckoutPage() {
 
       {!loading && cart.items.length > 0 && (
         <div className={styles.checkoutLayout}>
-          <form className={styles.checkoutForm} onSubmit={handleSubmit}>
+          <form className={styles.checkoutForm} onSubmit={handleSubmit} noValidate>
             <div className={styles.addressGrid}>
               <label>
                 <span>House / Flat No.</span>
@@ -239,7 +247,10 @@ export default function CheckoutPage() {
                   value={form.street}
                   onChange={handleChange}
                   maxLength="160"
+                  required
+                  aria-invalid={Boolean(fieldErrors.street)}
                 />
+                {fieldErrors.street && <span className={styles.fieldError}>{fieldErrors.street}</span>}
               </label>
 
               <label>
@@ -295,6 +306,7 @@ export default function CheckoutPage() {
                 value={form.contactNumber}
                 onChange={handleChange}
                 maxLength="20"
+                required
                 aria-invalid={Boolean(fieldErrors.contactNumber)}
               />
               {fieldErrors.contactNumber && (

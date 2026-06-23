@@ -3,6 +3,7 @@ package com.ecommerce.selenium.pages;
 import java.math.BigDecimal;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -23,6 +24,7 @@ public class CheckoutPage {
     private final By pincodeInput = By.name("pincode");
     private final By stateInput = By.name("state");
     private final By contactNumberInput = By.name("contactNumber");
+    private final By notification = By.cssSelector("[data-testid='app-notification']");
     private final By contactNumberError = By.xpath("//*[normalize-space()='Enter a valid contact number']");
     private final By placeOrderButton = By.xpath("//button[normalize-space()='Place Order' or normalize-space()='Placing Order...']");
     private final By summaryItems = By.xpath("//aside//span[normalize-space()='Items']/following-sibling::strong");
@@ -110,6 +112,20 @@ public class CheckoutPage {
         return this;
     }
 
+    public CheckoutPage enterValidCheckoutDetails() {
+        return enterHouseNo("221B")
+                .enterStreet("Baker Street")
+                .enterCity("Bengaluru")
+                .enterPincode("560001")
+                .enterState("Karnataka")
+                .enterContactNumber("9876543210");
+    }
+
+    public CheckoutPage clearField(String fieldName) {
+        type(inputByName(fieldName), "");
+        return this;
+    }
+
     public CheckoutPage selectPaymentMethod(String paymentMethod) {
         clickWhenReady(By.cssSelector("input[name='paymentMethod'][value='" + paymentMethod + "']"));
         wait.until(driver -> driver.findElement(By.cssSelector("input[name='paymentMethod'][value='" + paymentMethod + "']")).isSelected());
@@ -141,6 +157,12 @@ public class CheckoutPage {
         return driver.findElements(contactNumberError).stream().anyMatch(WebElement::isDisplayed);
     }
 
+    public boolean validationPopupDisplayed(String expectedMessage) {
+        return wait.until(driver -> driver.findElements(notification).stream()
+                .filter(WebElement::isDisplayed)
+                .anyMatch(element -> element.getText().contains(expectedMessage)));
+    }
+
     public boolean orderSuccessDisplayed() {
         return driver.getCurrentUrl().contains("/order-success")
                 && driver.findElements(orderSuccessHeading).stream().anyMatch(WebElement::isDisplayed);
@@ -161,9 +183,21 @@ public class CheckoutPage {
 
     private void type(By locator, String value) {
         WebElement input = wait.until(ExpectedConditions.elementToBeClickable(locator));
-        input.clear();
-        input.sendKeys(value);
-        wait.until(driver -> value.equals(driver.findElement(locator).getDomAttribute("value")));
+        input.sendKeys(Keys.chord(Keys.CONTROL, "a"));
+        input.sendKeys(Keys.BACK_SPACE);
+        if (!value.isEmpty()) {
+            input.sendKeys(value);
+        }
+        wait.until(driver -> value.equals(inputValue(locator)));
+    }
+
+    private By inputByName(String fieldName) {
+        return By.name(fieldName);
+    }
+
+    private String inputValue(By locator) {
+        String value = driver.findElement(locator).getAttribute("value");
+        return value == null ? "" : value;
     }
 
     private void clickWhenReady(By locator) {

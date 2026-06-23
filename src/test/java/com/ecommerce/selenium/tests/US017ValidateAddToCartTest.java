@@ -158,6 +158,29 @@ public class US017ValidateAddToCartTest extends BaseTest {
         log("===== T092 Automated plus/minus quantity button demo passed =====");
     }
 
+    @Test(priority = 6)
+    public void T093_automateRemoveProductFromCartUsingRemoveButton() {
+        log("===== T093 Automated cart remove button validation started =====");
+        ProductDetailsPage detailsPage = openFirstProductDetailsAsNewUser();
+
+        String selectedProductName = detailsPage.displayedProductName();
+        BigDecimal selectedProductPrice = priceValue(detailsPage.displayedProductPrice());
+
+        detailsPage.setQuantity(1).addToCart();
+        CartPage cartPage = detailsPage.viewCart();
+
+        verifyCartTotals(cartPage, selectedProductName, selectedProductPrice, 1,
+                "Automation opened cart with one product before remove");
+
+        cartPage.removeProduct(selectedProductName);
+
+        verify(!cartPage.hasProduct(selectedProductName), "Removed product is no longer visible in cart");
+        verify(cartPage.isEmpty(), "Cart empty state displayed after removing the only product");
+        verify(cartPage.itemRemoveSuccessDisplayed(), "Item removed success message displayed");
+        verify(!cartPage.itemRemoveErrorDisplayed(), "No remove item error displayed");
+        log("===== T093 Automated cart remove button validation passed =====");
+    }
+
     private ProductDetailsPage openFirstProductDetailsAsNewUser() {
         startBackendIfNeeded();
         String email = "selenium.us017." + Instant.now().toEpochMilli() + "@example.com";
