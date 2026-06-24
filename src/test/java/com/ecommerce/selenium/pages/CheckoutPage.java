@@ -31,6 +31,7 @@ public class CheckoutPage {
     private final By summaryTotal = By.xpath("//aside//span[normalize-space()='Total']/following-sibling::strong");
     private final By orderSuccessHeading = By.xpath("//h1[normalize-space()='Thank you for your order']");
     private final By successAddress = By.cssSelector("[class*='successAddress'] p");
+    private final By successPayment = By.xpath("//*[normalize-space()='Payment']/following-sibling::strong");
 
     public CheckoutPage(WebDriver driver, WebDriverWait wait) {
         this.driver = driver;
@@ -57,6 +58,35 @@ public class CheckoutPage {
                 .anyMatch(WebElement::isDisplayed);
     }
 
+    public String summaryProductName(String productName) {
+        return summaryItem(productName)
+                .findElement(By.xpath(".//strong[normalize-space()=" + xpathLiteral(productName) + "]"))
+                .getText()
+                .trim();
+    }
+
+    public int summaryQuantityForProduct(String productName) {
+        String quantityPriceText = summaryItem(productName)
+                .findElement(By.xpath(".//span[contains(normalize-space(), ' x Rs. ')]"))
+                .getText()
+                .trim();
+        return Integer.parseInt(quantityPriceText.split(" x Rs\\. ")[0].trim());
+    }
+
+    public BigDecimal summaryUnitPriceForProduct(String productName) {
+        String quantityPriceText = summaryItem(productName)
+                .findElement(By.xpath(".//span[contains(normalize-space(), ' x Rs. ')]"))
+                .getText()
+                .trim();
+        return new BigDecimal(quantityPriceText.split(" x Rs\\. ")[1].trim()).stripTrailingZeros();
+    }
+
+    public BigDecimal summarySubtotalForProduct(String productName) {
+        return normalizePrice(summaryItem(productName)
+                .findElement(By.xpath("./b[starts-with(normalize-space(), 'Rs.')]"))
+                .getText());
+    }
+
     public int totalItems() {
         return Integer.parseInt(wait.until(ExpectedConditions.visibilityOfElementLocated(summaryItems)).getText().trim());
     }
@@ -76,6 +106,16 @@ public class CheckoutPage {
 
     public boolean isCashOnDeliverySelected() {
         return driver.findElement(By.cssSelector("input[name='paymentMethod'][value='COD']")).isSelected();
+    }
+
+    public boolean isPaymentMethodDisplayed(String paymentMethod) {
+        return driver.findElements(By.cssSelector("input[name='paymentMethod'][value='" + paymentMethod + "']"))
+                .stream()
+                .anyMatch(WebElement::isDisplayed);
+    }
+
+    public boolean isPaymentMethodSelected(String paymentMethod) {
+        return driver.findElement(By.cssSelector("input[name='paymentMethod'][value='" + paymentMethod + "']")).isSelected();
     }
 
     public boolean isPlaceOrderEnabled() {
@@ -170,6 +210,19 @@ public class CheckoutPage {
 
     public boolean successAddressContains(String expectedText) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(successAddress)).getText().contains(expectedText);
+    }
+
+    public boolean successPaymentMethodIs(String expectedPaymentMethod) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(successPayment))
+                .getText()
+                .trim()
+                .equals(expectedPaymentMethod);
+    }
+
+    private WebElement summaryItem(String productName) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(
+                "//aside//div[.//strong[normalize-space()=" + xpathLiteral(productName)
+                        + "] and .//span[contains(normalize-space(), ' x Rs. ')] and ./b[starts-with(normalize-space(), 'Rs.')]]")));
     }
 
     private boolean isDisplayed(By locator) {
